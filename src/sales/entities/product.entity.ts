@@ -14,13 +14,10 @@ export class Product {
   description: string;
 
   @Column('double')
-  cost: number;
-
-  @Column('double')
   price: number;
 
-  @Column('boolean', { default: false })
-  hasFormula: boolean
+  @Column('varchar', { length: 255, nullable: true })
+  urlImagen: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

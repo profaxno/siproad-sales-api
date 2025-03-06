@@ -6,6 +6,10 @@ export class ProductDto {
   @IsOptional()
   id?: string;
 
+  @IsOptional()
+  @IsUUID()
+  productTypeId?: string;
+
   @IsUUID()
   companyId: string;
 
@@ -13,8 +17,10 @@ export class ProductDto {
   @MaxLength(45)
   name: string;
 
-  @IsNumber()
-  cost: number;
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  description?: string;
 
   @IsNumber()
   price: number;
@@ -22,19 +28,15 @@ export class ProductDto {
   @IsOptional()
   @IsString()
   @MaxLength(255)
-  description: string;
+  imagenUrl?: string;
 
-  @IsOptional()
-  @IsUUID()
-  productTypeId: string;
-
-  constructor(companyId: string, name: string, cost: number, price: number, id?: string, description?: string, productTypeId?: string) {
+  constructor(companyId: string, name: string, price: number, id?: string, productTypeId?: string, description?: string, imagenUrl?: string) {
     this.companyId = companyId;
     this.name = name;
-    this.cost = cost;
     this.price = price;
     this.id = id;
-    this.description = description;
     this.productTypeId = productTypeId;
+    this.description = description;
+    this.imagenUrl = imagenUrl;
   }
 }
