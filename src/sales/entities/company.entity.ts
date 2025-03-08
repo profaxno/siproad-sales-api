@@ -1,6 +1,5 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Product } from "./";
-import { ProductType } from "./product-type.entity";
+import { Product, ProductType, User } from "./";
 
 @Entity("sal_company")
 export class Company {
@@ -8,7 +7,7 @@ export class Company {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('varchar', { length: 45, unique: true })
+  @Column('varchar', { length: 50, unique: true })
   name: string;
 
   @CreateDateColumn({ type: 'timestamp' })
@@ -31,4 +30,10 @@ export class Company {
     (productType) => productType.company
   )
   productType: ProductType;
+
+  @OneToMany(
+    () => User,
+    (user) => user.company
+  )
+  user: User;
 }

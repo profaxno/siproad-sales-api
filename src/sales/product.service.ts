@@ -10,9 +10,9 @@ import { ProductDto } from './dto/product.dto';
 import { Product, Company, ProductType } from './entities';
 
 import { CompanyService } from './company.service';
+import { ProductTypeService } from './product-type.service';
 
 import { AlreadyExistException, IsBeingUsedException } from '../common/exceptions/common.exception';
-import { ProductTypeService } from './product-type.service';
 
 @Injectable()
 export class ProductService {
@@ -84,7 +84,7 @@ export class ProductService {
       return this.prepareEntity(entity, dto) // * prepare
       .then( (entity: Product) => this.save(entity) ) // * update
       .then( (entity: Product) => {
-        dto = new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType.id, entity.description, entity.urlImagen);
+        dto = new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl);
         
         const end = performance.now();
         this.logger.log(`update: executed, runtime=${(end - start) / 1000} seconds`);
@@ -126,7 +126,7 @@ export class ProductService {
       return this.prepareEntity(entity, dto) // * prepare
       .then( (entity: Product) => this.save(entity) ) // * create
       .then( (entity: Product) => {
-        dto = new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType.id, entity.description, entity.urlImagen);
+        dto = new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl);
 
         const end = performance.now();
         this.logger.log(`create: created OK, runtime=${(end - start) / 1000} seconds`);
@@ -148,7 +148,7 @@ export class ProductService {
     const start = performance.now();
 
     return this.findByParams(paginationDto, inputDto, companyId)
-    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType.id, entity.description, entity.urlImagen) ) )
+    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl) ) )
     .then( (dtoList: ProductDto[]) => {
       
       if(dtoList.length == 0){
@@ -177,7 +177,7 @@ export class ProductService {
     const inputDto: SearchInputDto = new SearchInputDto(id);
 
     return this.findByParams({}, inputDto, companyId)
-    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType.id, entity.description, entity.urlImagen) ) )
+    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl) ) )
     .then( (dtoList: ProductDto[]) => {
       
       if(dtoList.length == 0){
@@ -204,7 +204,7 @@ export class ProductService {
     const start = performance.now();
 
     return this.findProductsByCategory(paginationDto, companyId, categoryId)
-    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType.id, entity.description, entity.urlImagen) ) )
+    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl) ) )
     .then( (dtoList: ProductDto[]) => {
       
       if(dtoList.length == 0){
@@ -278,8 +278,8 @@ export class ProductService {
     const value = inputDto.search;
     if(value) {
       const whereById   = { id: value, active: true };
-      const whereByName = { company: { id: companyId }, name: Like(`%${value}%`), active: true };
-      const where       = isUUID(value) ? whereById : whereByName;
+      const whereByLike = { company: { id: companyId }, name: Like(`%${value}%`), active: true };
+      const where       = isUUID(value) ? whereById : whereByLike;
 
       return this.productRepository.find({
         take: limit,
@@ -336,7 +336,8 @@ export class ProductService {
 
       return this.productTypeService.findByParams({}, inputDto, dto.companyId)
       .then( (productTypeList: ProductType[]) => {
-        
+
+        entity.id           = dto.id ? dto.id : undefined;
         entity.company      = companyList[0];
         entity.name         = dto.name.toUpperCase();
         entity.description  = dto.description.toUpperCase();

@@ -4,7 +4,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { MessageDto, DataReplicationDto } from './dto/data-replication.dto';
-import { SourceEnum } from './enum';
+import { SourceEnum } from './enums';
 
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";

@@ -10,6 +10,7 @@ import { ProductTypeDto } from './dto/product-type.dto';
 import { ProductType, Company } from './entities';
 
 import { CompanyService } from './company.service';
+
 import { AlreadyExistException, IsBeingUsedException } from '../common/exceptions/common.exception';
 
 @Injectable()
@@ -42,11 +43,11 @@ export class ProductTypeService {
       await this.update(dto)
       .then( () => {
         processSummaryDto.rowsOK++;
-        processSummaryDto.detailsRowsOK.push(`(${i++}) name=${dto.label}, message=OK`);
+        processSummaryDto.detailsRowsOK.push(`(${i++}) name=${dto.name}, message=OK`);
       })
       .catch(error => {
         processSummaryDto.rowsKO++;
-        processSummaryDto.detailsRowsKO.push(`(${i++}) name=${dto.label}, error=${error}`);
+        processSummaryDto.detailsRowsKO.push(`(${i++}) name=${dto.name}, error=${error}`);
       })
 
     }
@@ -71,9 +72,8 @@ export class ProductTypeService {
 
       // * validate
       if(entityList.length == 0){
-        const msg = `productType not found, id=${dto.id}`;
-        this.logger.warn(`update: not executed (${msg})`);
-        throw new NotFoundException(msg);
+        this.logger.warn(`update: productType not found, id=${dto.id}`);
+        return this.create(dto); // * create, if the dto has an id and the object is not found, the request may possibly come from data replication
       }
 
       // * update
@@ -82,7 +82,7 @@ export class ProductTypeService {
       return this.prepareEntity(entity, dto) // * prepare
       .then( (entity: ProductType) => this.save(entity) ) // * update
       .then( (entity: ProductType) => {
-        const dto = new ProductTypeDto(entity.company.id, entity.label, entity.id); // * map to dto
+        const dto = new ProductTypeDto(entity.company.id, entity.name, entity.id); // * map to dto
 
         const end = performance.now();
         this.logger.log(`update: executed, runtime=${(end - start) / 1000} seconds`);
@@ -105,14 +105,14 @@ export class ProductTypeService {
     const start = performance.now();
 
     // * find productType
-    const inputDto: SearchInputDto = new SearchInputDto(undefined, [dto.label]);
+    const inputDto: SearchInputDto = new SearchInputDto(undefined, [dto.name]);
       
     return this.findByParams({}, inputDto, dto.companyId)
     .then( (entityList: ProductType[]) => {
 
       // * validate
       if(entityList.length > 0){
-        const msg = `productType already exists, name=${dto.label}`;
+        const msg = `productType already exists, name=${dto.name}`;
         this.logger.warn(`create: not executed (${msg})`);
         throw new AlreadyExistException(msg);
       }
@@ -123,7 +123,7 @@ export class ProductTypeService {
       return this.prepareEntity(entity, dto) // * prepare
       .then( (entity: ProductType) => this.save(entity) ) // * update
       .then( (entity: ProductType) => {
-        const dto = new ProductTypeDto(entity.company.id, entity.label, entity.id); // * map to dto 
+        const dto = new ProductTypeDto(entity.company.id, entity.name, entity.id); // * map to dto 
 
         const end = performance.now();
         this.logger.log(`create: OK, runtime=${(end - start) / 1000} seconds`);
@@ -145,7 +145,7 @@ export class ProductTypeService {
     const start = performance.now();
 
     return this.findByParams(paginationDto, inputDto, companyId)
-    .then( (entityList: ProductType[]) => entityList.map( (entity: ProductType) => new ProductTypeDto(entity.company.id, entity.label, entity.id) ) )// * map entities to DTOs
+    .then( (entityList: ProductType[]) => entityList.map( (entity: ProductType) => new ProductTypeDto(entity.company.id, entity.name, entity.id) ) )// * map entities to DTOs
     .then( (dtoList: ProductTypeDto[]) => {
       
       if(dtoList.length == 0){
@@ -174,7 +174,7 @@ export class ProductTypeService {
     const inputDto: SearchInputDto = new SearchInputDto(id);
     
     return this.findByParams({}, inputDto, companyId)
-    .then( (entityList: ProductType[]) => entityList.map( (entity: ProductType) => new ProductTypeDto(entity.company.id, entity.label, entity.id) ) )// * map entities to DTOs
+    .then( (entityList: ProductType[]) => entityList.map( (entity: ProductType) => new ProductTypeDto(entity.company.id, entity.name, entity.id) ) )// * map entities to DTOs
     .then( (dtoList: ProductTypeDto[]) => {
       
       if(dtoList.length == 0){
@@ -242,11 +242,11 @@ export class ProductTypeService {
     const {page=1, limit=this.dbDefaultLimit} = paginationDto;
 
     // * search by id or partial value
-    const value = inputDto.search
+    const value = inputDto.search;
     if(value) {
       const whereById   = { id: value };
-      const whereByName = { company: { id: companyId}, label: Like(`%${value}%`) };
-      const where       = isUUID(value) ? whereById : whereByName;
+      const whereByLike = { company: { id: companyId}, name: Like(`%${value}%`) };
+      const where       = isUUID(value) ? whereById : whereByLike;
 
       return this.productTypeRepository.find({
         take: limit,
@@ -264,7 +264,7 @@ export class ProductTypeService {
           company: {
             id: companyId
           },
-          label: In(inputDto.searchList)
+          name: In(inputDto.searchList)
         }
       })
     }
@@ -297,7 +297,7 @@ export class ProductTypeService {
       }
 
       entity.company = companyList[0];
-      entity.label = dto.label.toUpperCase();
+      entity.name = dto.name.toUpperCase();
       
       return entity;
       

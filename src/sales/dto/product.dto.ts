@@ -14,12 +14,12 @@ export class ProductDto {
   companyId: string;
 
   @IsString()
-  @MaxLength(45)
+  @MaxLength(50)
   name: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(255)
+  @MaxLength(100)
   description?: string;
 
   @IsNumber()

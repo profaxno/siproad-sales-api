@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { CompanyDto } from './dto/company.dto';
 import { Company } from './entities/company.entity';
+
 import { AlreadyExistException, IsBeingUsedException } from '../common/exceptions/common.exception';
 
 @Injectable()
@@ -214,8 +215,8 @@ export class CompanyService {
     const value = inputDto.search;
     if(value) {
       const whereById   = { id: value, active: true };
-      const whereByName = { name: Like(`%${value}%`), active: true };
-      const where       = isUUID(value) ? whereById : whereByName;
+      const whereByLike = { name: Like(`%${value}%`), active: true };
+      const where       = isUUID(value) ? whereById : whereByLike;
 
       return this.companyRepository.find({
         take: limit,

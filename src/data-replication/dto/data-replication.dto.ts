@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { ArrayNotEmpty, IsArray, IsIn, IsInt, IsNotEmpty, IsObject, IsOptional, IsPositive, IsString, ValidateNested } from "class-validator";
-import { ProcessEnum, SourceEnum } from "../enum";
+import { ProcessEnum, SourceEnum } from "../enums";
 
 export class DataReplicationDto {
     @IsArray()
