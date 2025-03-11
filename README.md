@@ -24,3 +24,12 @@ Api central del sistema siproad que permite gestionar ventas.
 * Instalar Docker desktop.
 * Descargar imagen mariadb.
 * Crear contenedor de base de datos y api ```docker-compose -p dev-siproad up -d```
+
+### Configuración de la base de datos (docker)
+* La configuración se encuentra en el docker-compose del repo siproad-admin-api.
+
+## Configuración ambiente stg
+
+### Configuración de la api
+* Apuntar el archivo .env a las variables de staging.
+* Crear contenedor de api ```docker-compose -p stg-siproad up -d```
