@@ -1,4 +1,4 @@
-import { In, Like, Repository } from 'typeorm';
+import { In, Like, Raw, Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
 import { ProcessSummaryDto, SearchInputDto, SearchPaginationDto } from 'profaxnojs/util';
 
@@ -244,9 +244,12 @@ export class ProductService {
         throw new NotFoundException(msg);
       }
       
-      // * delete
-      return this.productRepository.delete(id) // * delete product and productElement on cascade
-      .then( () => {
+      // * delete: update field active
+      const entity = entityList[0];
+      entity.active = false;
+
+      return this.save(entity)
+      .then( (entity: Product) => {
 
         const end = performance.now();
         this.logger.log(`remove: OK, runtime=${(end - start) / 1000} seconds`);
@@ -277,9 +280,9 @@ export class ProductService {
     // * search by id or partial value
     const value = inputDto.search;
     if(value) {
-      const whereById   = { id: value, active: true };
-      const whereByLike = { company: { id: companyId }, name: Like(`%${value}%`), active: true };
-      const where       = isUUID(value) ? whereById : whereByLike;
+      const whereById     = { id: value, active: true };
+      const whereByValue  = { company: { id: companyId }, name: value, active: true };
+      const where = isUUID(value) ? whereById : whereByValue;
 
       return this.productRepository.find({
         take: limit,
@@ -297,8 +300,9 @@ export class ProductService {
           company: { 
             id: companyId 
           },
-          name: In(inputDto.searchList),
-          active: true,
+          name: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value}%'`).join(' OR ') ),
+          // name: In(inputDto.searchList),
+          active: true
         }
       })
     }
@@ -340,9 +344,11 @@ export class ProductService {
         entity.id           = dto.id ? dto.id : undefined;
         entity.company      = companyList[0];
         entity.name         = dto.name.toUpperCase();
-        entity.description  = dto.description.toUpperCase();
+        entity.description  = dto.description?.toUpperCase();
+        entity.cost         = dto.cost;
         entity.price        = dto.price;
         entity.productType  = productTypeList.length > 0 ? productTypeList[0] : undefined;
+        // entity.active       = dto.active;
 
         return entity;
       })

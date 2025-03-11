@@ -17,12 +17,15 @@ export class OrderProduct {
   name: string;
 
   @Column('double')
+  cost: number;
+
+  @Column('double')
   price: number;
 
-  @Column('double')
+  @Column('double', { default: 0 })
   discount: number;
 
-  @Column('double')
+  @Column('double', { default: 0 })
   discountPct: number;
 
   @Column('tinyint', { unsigned: true })

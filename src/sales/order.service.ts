@@ -1,17 +1,18 @@
-import { In, InsertResult, Like, Repository } from 'typeorm';
+import { In, InsertResult, Like, Raw, Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
 import { ProcessSummaryDto, SearchInputDto, SearchPaginationDto } from 'profaxnojs/util';
 
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Query } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { OrderDto, OrderProductDto } from './dto/order.dto';
-import { Order, OrderProduct, Product, Company } from './entities';
+import { Order, OrderProduct, Product, Company, User } from './entities';
 
 import { CompanyService } from './company.service';
 
 import { AlreadyExistException, IsBeingUsedException } from '../common/exceptions/common.exception';
+import { UserService } from './user.service';
 
 @Injectable()
 export class OrderService {
@@ -32,7 +33,8 @@ export class OrderService {
     @InjectRepository(Product, 'salesConn')
     private readonly productRepository: Repository<Product>,
 
-    private readonly companyService: CompanyService
+    private readonly companyService: CompanyService,
+    private readonly userService: UserService
     
   ){
     this.dbDefaultLimit = this.ConfigService.get("dbDefaultLimit");
@@ -213,8 +215,11 @@ export class OrderService {
         throw new NotFoundException(msg);
       }
 
-      // * delete
-      return this.orderRepository.delete(id) // * delete order and orderProduct on cascade
+      // * delete: update field active
+      const entity = entityList[0];
+      entity.active = false;
+
+      return this.save(entity)
       .then( () => {
         const end = performance.now();
         this.logger.log(`remove: OK, runtime=${(end - start) / 1000} seconds`);
@@ -253,13 +258,27 @@ export class OrderService {
         throw new NotFoundException(msg);
       }
 
-      entity.company  = companyList[0];
-      entity.comment  = dto.comment;
-      entity.discount = dto.discount;
-      entity.discountPct = dto.discountPct;
-      entity.status   = dto.status;
-      
-      return entity;
+      // * find user
+      const inputDto: SearchInputDto = new SearchInputDto(dto.userId);
+
+      return this.userService.findByParams({}, inputDto)
+      .then( (userList: User[]) => {
+    
+        if(userList.length == 0){
+          const msg = `user not found, id=${dto.companyId}`;
+          this.logger.warn(`create: not executed (${msg})`);
+          throw new NotFoundException(msg);
+        }
+
+        entity.company  = companyList[0];
+        entity.user     = userList[0];
+        entity.comment  = dto.comment;
+        entity.discount = dto.discount;
+        entity.discountPct = dto.discountPct;
+        entity.status   = dto.status;
+        
+        return entity;
+      })
       
     })
     
@@ -271,9 +290,9 @@ export class OrderService {
     // * search by id or partial value
     const value = inputDto.search;
     if(value) {
-      const whereById   = { id: value, active: true };
-      const whereByLike = { company: { id: companyId }, comment: Like(`%${value}%`), active: true };
-      const where       = isUUID(value) ? whereById : whereByLike;
+      const whereById     = { id: value, active: true };
+      const whereByValue  = { company: { id: companyId }, comment: Like(`%${value}%`), active: true };
+      const where = isUUID(value) ? whereById : whereByValue;
 
       return this.orderRepository.find({
         take: limit,
@@ -292,10 +311,11 @@ export class OrderService {
         skip: (page - 1) * limit,
         where: {
           company: { 
-            id: companyId 
+            id: companyId
           },
-          comment: In(inputDto.searchList),
-          active: true,
+          comment: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value}%'`).join(' OR ') ),
+          // comment: In(inputDto.searchList),
+          active: true
         },
         relations: {
           orderProduct: true
@@ -364,10 +384,20 @@ export class OrderService {
         
         // * generate order product list
         const orderProductList: OrderProduct[] = productList.map( (product: Product) => {
+          const orderProductDto = orderProductDtoList.find( (value) => value.id == product.id);
+
           const orderProduct = new OrderProduct();
-          orderProduct.order = order;
-          orderProduct.product = product;
-          orderProduct.qty = orderProductDtoList.find( (productDto) => productDto.id == product.id).qty;
+          orderProduct.order    = order;
+          orderProduct.product  = product;
+          orderProduct.qty      = orderProductDto.qty;
+          orderProduct.comment  = orderProductDto.comment;
+          orderProduct.name     = product.name;
+          orderProduct.cost     = product.cost * orderProductDto.qty;
+          orderProduct.price    = product.price * orderProductDto.qty;
+          orderProduct.discount = orderProductDto.discount;
+          orderProduct.discountPct = orderProductDto.discountPct;
+          orderProduct.status   = orderProductDto.status;
+          
           return orderProduct;
         })
   
@@ -410,13 +440,19 @@ export class OrderService {
   generateOrderWithProductList(order: Order, orderProductList: OrderProduct[]): OrderDto {
     
     let orderProductDtoList: OrderProductDto[] = [];
-    
+    let cost  = 0;
+    let price = 0;
+
     if(orderProductList.length > 0){
-      orderProductDtoList = orderProductList.map( (orderProduct: OrderProduct) => new OrderProductDto(orderProduct.product.id, orderProduct.qty, orderProduct.product.name, orderProduct.product.price, orderProduct.comment, orderProduct.discount, orderProduct.discountPct, orderProduct.status) );
-    } 
+      orderProductDtoList = orderProductList.map( (orderProduct: OrderProduct) => new OrderProductDto(orderProduct.product.id, orderProduct.qty, orderProduct.name, orderProduct.cost, orderProduct.price, orderProduct.comment, orderProduct.discount, orderProduct.discountPct, orderProduct.status) );
+
+      // * calculate cost, price
+      cost  = orderProductDtoList.reduce( (acc, dto) => acc + (dto.qty * dto.cost), 0);
+      price = orderProductDtoList.reduce( (acc, dto) => acc + (dto.qty * dto.price), 0);
+    }
 
     // * generate order dto
-    const orderDto = new OrderDto(order.company.id, order.id, order.comment, order.discount, order.discountPct, order.status, orderProductDtoList);
+    const orderDto = new OrderDto(order.company.id, order.id, order.comment, order.discount, order.discountPct, order.status, order.company, order.user, orderProductDtoList, cost, price);
 
     return orderDto;
   }

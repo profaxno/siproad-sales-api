@@ -15,6 +15,9 @@ export class Product {
   description: string;
 
   @Column('double')
+  cost: number;
+
+  @Column('double')
   price: number;
 
   @Column('varchar', { length: 255, nullable: true })

@@ -10,10 +10,10 @@ export class Order {
   @Column('varchar', { length: 100, nullable: true })
   comment: string;
 
-  @Column('double')
+  @Column('double', { default: 0 })
   discount: number;
 
-  @Column('double')
+  @Column('double', { default: 0 })
   discountPct: number;
 
   @Column('tinyint', { unsigned: true })
