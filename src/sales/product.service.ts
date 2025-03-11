@@ -84,7 +84,7 @@ export class ProductService {
       return this.prepareEntity(entity, dto) // * prepare
       .then( (entity: Product) => this.save(entity) ) // * update
       .then( (entity: Product) => {
-        dto = new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl);
+        dto = new ProductDto(entity.company.id, entity.name, entity.cost, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl);
         
         const end = performance.now();
         this.logger.log(`update: executed, runtime=${(end - start) / 1000} seconds`);
@@ -126,7 +126,7 @@ export class ProductService {
       return this.prepareEntity(entity, dto) // * prepare
       .then( (entity: Product) => this.save(entity) ) // * create
       .then( (entity: Product) => {
-        dto = new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl);
+        dto = new ProductDto(entity.company.id, entity.name, entity.cost, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl);
 
         const end = performance.now();
         this.logger.log(`create: created OK, runtime=${(end - start) / 1000} seconds`);
@@ -148,7 +148,7 @@ export class ProductService {
     const start = performance.now();
 
     return this.findByParams(paginationDto, inputDto, companyId)
-    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl) ) )
+    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.cost, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl) ) )
     .then( (dtoList: ProductDto[]) => {
       
       if(dtoList.length == 0){
@@ -177,7 +177,7 @@ export class ProductService {
     const inputDto: SearchInputDto = new SearchInputDto(id);
 
     return this.findByParams({}, inputDto, companyId)
-    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl) ) )
+    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.cost, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl) ) )
     .then( (dtoList: ProductDto[]) => {
       
       if(dtoList.length == 0){
@@ -204,7 +204,7 @@ export class ProductService {
     const start = performance.now();
 
     return this.findProductsByCategory(paginationDto, companyId, categoryId)
-    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl) ) )
+    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.cost, entity.price, entity.id, entity.productType?.id, entity.description, entity.imagenUrl) ) )
     .then( (dtoList: ProductDto[]) => {
       
       if(dtoList.length == 0){

@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength, Min } from "class-validator";
 
 export class ProductDto {
   
@@ -23,10 +23,11 @@ export class ProductDto {
   description?: string;
 
   @IsNumber()
-  @IsPositive()
+  @Min(0)
   cost: number;
   
   @IsNumber()
+  @Min(0)
   price: number;
 
   @IsOptional()
@@ -38,9 +39,10 @@ export class ProductDto {
   // @IsBoolean()
   // active: boolean;
 
-  constructor(companyId: string, name: string, price: number, id?: string, productTypeId?: string, description?: string, imagenUrl?: string/*, active?: boolean*/) {
+  constructor(companyId: string, name: string, cost: number, price: number, id?: string, productTypeId?: string, description?: string, imagenUrl?: string/*, active?: boolean*/) {
     this.companyId = companyId;
     this.name = name;
+    this.cost = cost;
     this.price = price;
     this.id = id;
     this.productTypeId = productTypeId;
