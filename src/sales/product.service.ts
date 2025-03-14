@@ -292,7 +292,7 @@ export class ProductService {
     }
 
     // * search by value list
-    if(inputDto.searchList) {
+    if(inputDto.searchList?.length > 0) {
       return this.productRepository.find({
         take: limit,
         skip: (page - 1) * limit,
@@ -302,6 +302,18 @@ export class ProductService {
           },
           name: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value}%'`).join(' OR ') ),
           // name: In(inputDto.searchList),
+          active: true
+        }
+      })
+    }
+
+    // * search by id list
+    if(inputDto.idList?.length > 0) {
+      return this.productRepository.find({
+        take: limit,
+        skip: (page - 1) * limit,
+        where: {
+          id: In(inputDto.idList),
           active: true
         }
       })

@@ -13,6 +13,7 @@ import { CompanyService } from './company.service';
 
 import { AlreadyExistException, IsBeingUsedException } from '../common/exceptions/common.exception';
 import { UserService } from './user.service';
+import { ProductService } from './product.service';
 
 @Injectable()
 export class OrderService {
@@ -30,10 +31,11 @@ export class OrderService {
     @InjectRepository(OrderProduct, 'salesConn')
     private readonly orderProductRepository: Repository<OrderProduct>,
 
-    @InjectRepository(Product, 'salesConn')
-    private readonly productRepository: Repository<Product>,
+    // @InjectRepository(Product, 'salesConn')
+    // private readonly productRepository: Repository<Product>,
 
     private readonly companyService: CompanyService,
+    private readonly productService: ProductService,
     private readonly userService: UserService
     
   ){
@@ -305,7 +307,7 @@ export class OrderService {
     }
 
     // * search by value list
-    if(inputDto.searchList) {
+    if(inputDto.searchList?.length > 0){
       return this.orderRepository.find({
         take: limit,
         skip: (page - 1) * limit,
@@ -364,10 +366,9 @@ export class OrderService {
 
     // * find products by id
     const productIdList = orderProductDtoList.map( (item) => item.id );
+    const inputDto: SearchInputDto = new SearchInputDto(undefined, undefined, productIdList);
 
-    return this.productRepository.findBy({ // TODO: Posiblemente aca deberia utilizarse el servicio y no el repositorio
-      id: In(productIdList),
-    })
+    return this.productService.findByParams({}, inputDto)
     .then( (productList: Product[]) => {
 
       // * validate
