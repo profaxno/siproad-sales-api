@@ -311,6 +311,7 @@ export class UserService {
         throw new NotFoundException(msg);
       }
       
+      // * prepare entity
       entity.id       = dto.id ? dto.id : undefined;
       entity.company  = companyList[0];
       entity.name     = dto.name.toUpperCase();
