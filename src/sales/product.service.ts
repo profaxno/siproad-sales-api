@@ -350,9 +350,10 @@ export class ProductService {
       // * find product type
       const inputDto: SearchInputDto = new SearchInputDto(dto.productTypeId);
 
-      return this.productTypeService.findByParams({}, inputDto, dto.companyId)
+      return ( dto.productTypeId ? this.productTypeService.findByParams({}, inputDto, dto.companyId) : Promise.resolve([]) )
       .then( (productTypeList: ProductType[]) => {
-
+        
+        // * prepare entity
         entity.id           = dto.id ? dto.id : undefined;
         entity.company      = companyList[0];
         entity.name         = dto.name.toUpperCase();
@@ -360,11 +361,11 @@ export class ProductService {
         entity.cost         = dto.cost;
         entity.price        = dto.price;
         entity.productType  = productTypeList.length > 0 ? productTypeList[0] : undefined;
-        // entity.active       = dto.active;
 
         return entity;
-      })
 
+      })
+      
     })
     
   }

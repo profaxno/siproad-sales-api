@@ -272,6 +272,7 @@ export class OrderService {
           throw new NotFoundException(msg);
         }
 
+        // * prepare entity
         entity.company  = companyList[0];
         entity.user     = userList[0];
         entity.comment  = dto.comment;

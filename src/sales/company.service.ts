@@ -226,7 +226,7 @@ export class CompanyService {
     }
 
     // * search by value list
-    if(inputDto.searchList.length > 0) {
+    if(inputDto.searchList?.length > 0) {
       return this.companyRepository.find({
         take: limit,
         skip: (page - 1) * limit,
@@ -234,7 +234,7 @@ export class CompanyService {
           name: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value}%'`).join(' OR ') ),
           // name: In(inputDto.searchList),
           active: true
-        },
+        }
       })
     }
 
