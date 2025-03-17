@@ -275,7 +275,7 @@ export class OrderService {
         // * prepare entity
         entity.company  = companyList[0];
         entity.user     = userList[0];
-        entity.comment  = dto.comment;
+        entity.comment  = dto.comment?.toUpperCase();
         entity.discount = dto.discount;
         entity.discountPct = dto.discountPct;
         entity.status   = dto.status;
@@ -316,7 +316,7 @@ export class OrderService {
           company: { 
             id: companyId
           },
-          comment: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value}%'`).join(' OR ') ),
+          comment: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value.replace(' ', '%')}%'`).join(' OR ') ),
           // comment: In(inputDto.searchList),
           active: true
         },
@@ -394,8 +394,8 @@ export class OrderService {
           orderProduct.qty      = orderProductDto.qty;
           orderProduct.comment  = orderProductDto.comment;
           orderProduct.name     = product.name;
-          orderProduct.cost     = product.cost * orderProductDto.qty;
-          orderProduct.price    = product.price * orderProductDto.qty;
+          orderProduct.cost     = product.cost;
+          orderProduct.price    = product.price;
           orderProduct.discount = orderProductDto.discount;
           orderProduct.discountPct = orderProductDto.discountPct;
           orderProduct.status   = orderProductDto.status;

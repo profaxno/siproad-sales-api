@@ -426,7 +426,7 @@ export class UserService {
           company: {
             id: companyId
           },
-          name: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value}%'`).join(' OR ') ),
+          name: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value.replace(' ', '%')}%'`).join(' OR ') ),
           // email: In(inputDto.searchList),
           active: true
         },
