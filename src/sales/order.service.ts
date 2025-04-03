@@ -404,7 +404,7 @@ export class OrderService {
       .then( () => {
         
         // * generate order product list
-        const orderProductList: OrderProduct[] = productList.map( (product: Product) => {
+        return productList.map( (product: Product) => {
           const orderProductDto = orderProductDtoList.find( (value) => value.id == product.id);
 
           const orderProduct = new OrderProduct();
@@ -422,15 +422,13 @@ export class OrderService {
           
           return orderProduct;
         })
-  
-        // * bulk insert
-        return this.bulkInsertOrderProducts(orderProductList)
-        .then( (orderProductList: OrderProduct[]) => {
-          const end = performance.now();
-          this.logger.log(`updateOrderProduct: OK, runtime=${(end - start) / 1000} seconds`);
-          return orderProductList;
-        })
 
+      })
+      .then( (orderProductList: OrderProduct[]) => this.bulkInsertOrderProducts(orderProductList) ) // * bulk insert
+      .then( (orderProductList: OrderProduct[]) => {
+        const end = performance.now();
+        this.logger.log(`updateOrderProduct: OK, runtime=${(end - start) / 1000} seconds`);
+        return orderProductList;
       })
 
     })
