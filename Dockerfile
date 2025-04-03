@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Copia los archivos necesarios
 COPY package.json package-lock.json ./
+#COPY nanoid-wrapper.cjs ./
 
 # Instala solo las dependencias necesarias para construir la app
 RUN npm install --omit=dev
