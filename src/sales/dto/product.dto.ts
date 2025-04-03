@@ -2,8 +2,8 @@ import { IsBoolean, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLengt
 
 export class ProductDto {
   
-  @IsUUID()
   @IsOptional()
+  @IsUUID()
   id?: string;
 
   @IsOptional()
@@ -16,6 +16,12 @@ export class ProductDto {
   @IsString()
   @MaxLength(50)
   name: string;
+
+  @IsString()
+
+  @IsOptional()
+  @MaxLength(50)
+  code: string;
 
   @IsOptional()
   @IsString()
@@ -39,9 +45,10 @@ export class ProductDto {
   // @IsBoolean()
   // active: boolean;
 
-  constructor(companyId: string, name: string, cost: number, price: number, id?: string, productTypeId?: string, description?: string, imagenUrl?: string/*, active?: boolean*/) {
+  constructor(companyId: string, name: string, cost: number, price: number, id?: string, code?: string, productTypeId?: string, description?: string, imagenUrl?: string/*, active?: boolean*/) {
     this.companyId = companyId;
     this.name = name;
+    this.code = code;
     this.cost = cost;
     this.price = price;
     this.id = id;

@@ -7,6 +7,24 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column('varchar', { length: 50 })
+  code: string;
+  
+  @Column('varchar', { length: 50, nullable: true })
+  customerIdDoc: string;
+
+  @Column('varchar', { length: 50, nullable: true })
+  customerName: string;
+
+  @Column('varchar', { length: 50, nullable: true })
+  customerEmail: string;
+
+  @Column('varchar', { length: 50, nullable: true })
+  customerPhone: string;
+
+  @Column('varchar', { length: 150, nullable: true })
+  customerAddress: string;
+
   @Column('varchar', { length: 100, nullable: true })
   comment: string;
 
@@ -16,7 +34,7 @@ export class Order {
   @Column('double', { default: 0 })
   discountPct: number;
 
-  @Column('tinyint', { unsigned: true })
+  @Column('tinyint', { default: 1, unsigned: true })
   status: number;
 
   @CreateDateColumn({ type: 'timestamp' })
