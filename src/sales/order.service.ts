@@ -1,6 +1,9 @@
 import { In, InsertResult, Like, Raw, Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
+// import { nanoid } from 'nanoid'
 import { ProcessSummaryDto, SearchInputDto, SearchPaginationDto } from 'profaxnojs/util';
+const generateCode = require('../../src/utils/nanoid-wrapper.cjs'); 
+import * as moment from 'moment-timezone';
 
 import { Injectable, Logger, NotFoundException, Query } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -13,6 +16,8 @@ import { CompanyService } from './company.service';
 
 import { AlreadyExistException, IsBeingUsedException } from '../common/exceptions/common.exception';
 import { UserService } from './user.service';
+import { ProductService } from './product.service';
+import { DateEnum } from 'src/common/enums/date.enum';
 
 @Injectable()
 export class OrderService {
@@ -30,10 +35,11 @@ export class OrderService {
     @InjectRepository(OrderProduct, 'salesConn')
     private readonly orderProductRepository: Repository<OrderProduct>,
 
-    @InjectRepository(Product, 'salesConn')
-    private readonly productRepository: Repository<Product>,
+    // @InjectRepository(Product, 'salesConn')
+    // private readonly productRepository: Repository<Product>,
 
     private readonly companyService: CompanyService,
+    private readonly productService: ProductService,
     private readonly userService: UserService
     
   ){
@@ -155,7 +161,8 @@ export class OrderService {
       if(dtoList.length == 0){
         const msg = `orders not found`;
         this.logger.warn(`find: ${msg}`);
-        throw new NotFoundException(msg);
+        return [];
+        // throw new NotFoundException(msg);
       }
 
       const end = performance.now();
@@ -270,14 +277,26 @@ export class OrderService {
           throw new NotFoundException(msg);
         }
 
-        entity.company  = companyList[0];
-        entity.user     = userList[0];
-        entity.comment  = dto.comment;
-        entity.discount = dto.discount;
-        entity.discountPct = dto.discountPct;
-        entity.status   = dto.status;
-        
-        return entity;
+        return ( dto.code ? Promise.resolve(dto.code) : this.generateCode(dto.companyId) )// * generate code
+        .then( (code: string) => {
+          
+          // * prepare entity
+          entity.code           = code.toUpperCase();
+          entity.company        = companyList[0];
+          entity.user           = userList[0];
+          entity.customerIdDoc  = dto.customerIdDoc;
+          entity.customerName   = dto.customerName?.toUpperCase();
+          entity.customerEmail  = dto.customerEmail?.toUpperCase();
+          entity.customerPhone  = dto.customerPhone;
+          entity.customerAddress = dto.customerAddress?.toUpperCase();
+          entity.comment        = dto.comment?.toUpperCase();
+          entity.discount       = dto.discount;
+          entity.discountPct    = dto.discountPct;
+          entity.status         = dto.status; // TODO: poner requerido el status aqui y en el graphql
+          
+          return entity;
+        })
+
       })
       
     })
@@ -300,12 +319,13 @@ export class OrderService {
         where: where,
         relations: {
           orderProduct: true
-        }
+        },
+        order: { createdAt: "DESC" }
       })
     }
 
     // * search by value list
-    if(inputDto.searchList) {
+    if(inputDto.searchList?.length > 0){
       return this.orderRepository.find({
         take: limit,
         skip: (page - 1) * limit,
@@ -313,13 +333,14 @@ export class OrderService {
           company: { 
             id: companyId
           },
-          comment: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value}%'`).join(' OR ') ),
+          comment: Raw( (fieldName) => inputDto.searchList.map(value => `${fieldName} LIKE '%${value.replace(' ', '%')}%'`).join(' OR ') ),
           // comment: In(inputDto.searchList),
           active: true
         },
         relations: {
           orderProduct: true
-        }
+        },
+        order: { createdAt: "DESC" }
       })
     }
 
@@ -335,7 +356,8 @@ export class OrderService {
       },
       relations: {
         orderProduct: true
-      }
+      },
+      order: { createdAt: "DESC" }
     })
     
   }
@@ -364,10 +386,9 @@ export class OrderService {
 
     // * find products by id
     const productIdList = orderProductDtoList.map( (item) => item.id );
+    const inputDto: SearchInputDto = new SearchInputDto(undefined, undefined, productIdList);
 
-    return this.productRepository.findBy({ // TODO: Posiblemente aca deberia utilizarse el servicio y no el repositorio
-      id: In(productIdList),
-    })
+    return this.productService.findByParams({}, inputDto)
     .then( (productList: Product[]) => {
 
       // * validate
@@ -392,8 +413,9 @@ export class OrderService {
           orderProduct.qty      = orderProductDto.qty;
           orderProduct.comment  = orderProductDto.comment;
           orderProduct.name     = product.name;
-          orderProduct.cost     = product.cost * orderProductDto.qty;
-          orderProduct.price    = product.price * orderProductDto.qty;
+          orderProduct.code     = product.code;
+          orderProduct.cost     = orderProductDto.cost;
+          orderProduct.price    = orderProductDto.price;
           orderProduct.discount = orderProductDto.discount;
           orderProduct.discountPct = orderProductDto.discountPct;
           orderProduct.status   = orderProductDto.status;
@@ -444,7 +466,7 @@ export class OrderService {
     let price = 0;
 
     if(orderProductList.length > 0){
-      orderProductDtoList = orderProductList.map( (orderProduct: OrderProduct) => new OrderProductDto(orderProduct.product.id, orderProduct.qty, orderProduct.name, orderProduct.cost, orderProduct.price, orderProduct.comment, orderProduct.discount, orderProduct.discountPct, orderProduct.status) );
+      orderProductDtoList = orderProductList.map( (orderProduct: OrderProduct) => new OrderProductDto(orderProduct.product.id, orderProduct.qty, orderProduct.name, orderProduct.cost, orderProduct.price, orderProduct.comment, orderProduct.code, orderProduct.discount, orderProduct.discountPct, orderProduct.status) );
 
       // * calculate cost, price
       cost  = orderProductDtoList.reduce( (acc, dto) => acc + (dto.qty * dto.cost), 0);
@@ -452,9 +474,54 @@ export class OrderService {
     }
 
     // * generate order dto
-    const orderDto = new OrderDto(order.company.id, order.id, order.comment, order.discount, order.discountPct, order.status, order.company, order.user, orderProductDtoList, cost, price);
+    const orderDto = new OrderDto(
+      order.company.id,
+      order.id,
+      order.code,
+      order.customerIdDoc,
+      order.customerName,
+      order.customerEmail,
+      order.customerPhone,
+      order.customerAddress,
+      order.comment,
+      order.discount,
+      order.discountPct,
+      order.status,
+      moment(order.createdAt).format(DateEnum.DATETIME_FORMAT),
+      order.company,
+      order.user,
+      orderProductDtoList,
+      cost,
+      price);
 
     return orderDto;
+  }
+
+  private async generateCode(companyId: string): Promise<string> {
+
+    const code = await generateCode();
+
+    return this.findByCode(companyId, code)
+    .then( (orderList: Order[]) => {
+
+      if(orderList.length == 0)
+        return code;
+
+      return this.generateCode(companyId);
+    })
+
+  }
+
+  private findByCode(companyId: string, code: string): Promise<Order[]> {
+    return this.orderRepository.find({
+      where: {
+        company: { 
+          id: companyId 
+        },
+        code: code,
+        active: true 
+      }
+    })
   }
 
 }

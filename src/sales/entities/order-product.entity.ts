@@ -16,6 +16,9 @@ export class OrderProduct {
   @Column('varchar', { length: 50 })
   name: string;
 
+  @Column('varchar', { length: 50 })
+  code: string;
+
   @Column('double')
   cost: number;
 

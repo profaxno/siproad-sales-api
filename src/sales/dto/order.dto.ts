@@ -36,15 +36,45 @@ export class OrderUserDto {
 
 export class OrderDto {
   
-  @IsUUID()
   @IsOptional()
+  @IsUUID()
   id?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  code?: string;
 
   @IsUUID()
   companyId: string;
 
   @IsUUID()
   userId: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  customerIdDoc?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  customerName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  customerEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  customerPhone?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  customerAddress?: string;
 
   @IsOptional()
   @IsString()
@@ -63,8 +93,12 @@ export class OrderDto {
   
   @IsOptional()
   @IsInt()
-  @IsPositive()
+  @Min(0)
   status?: number;
+
+  @IsOptional()
+  @IsString()
+  createdAt?: string;
 
   @IsOptional()
   @Type(() => OrderCompanyDto)
@@ -90,13 +124,20 @@ export class OrderDto {
   @Min(0)
   price?: number;
 
-  constructor(companyId: string, id?: string, comment?: string, discount?: number, discountPct?: number, status?: number, company?: OrderCompanyDto, user?: OrderUserDto, productList?: OrderProductDto[], cost?: number, price?: number){
+  constructor(companyId: string, id?: string, code?: string, customerIdDoc?: string, customerName?: string, customerEmail?: string, customerPhone?: string, customerAddress?: string,  comment?: string, discount?: number, discountPct?: number, status?: number, createdAt?: string, company?: OrderCompanyDto, user?: OrderUserDto, productList?: OrderProductDto[], cost?: number, price?: number){
     this.companyId    = companyId;
     this.id           = id;
+    this.code         = code;
+    this.customerIdDoc = customerIdDoc;
+    this.customerName = customerName;
+    this.customerEmail = customerEmail;
+    this.customerPhone = customerPhone;
+    this.customerAddress = customerAddress
     this.comment      = comment;
     this.discount     = discount;
     this.discountPct  = discountPct;
     this.status       = status;
+    this.createdAt    = createdAt;
     this.company      = company;
     this.user         = user;
     this.productList  = productList;
@@ -122,6 +163,11 @@ export class OrderProductDto {
   @MaxLength(50)
   name: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  code: string;
+
   @IsNumber()
   @Min(0)
   cost: number;
@@ -141,17 +187,18 @@ export class OrderProductDto {
   discountPct?: number;
 
   @IsOptional()
-  @IsNumber()
   @IsInt()
+  @Min(0)
   status?: number;
   
-  constructor(id: string, qty: number, name: string, cost: number, price: number, comment?: string, discount?: number, discountPct?: number, status?: number){
+  constructor(id: string, qty: number, name: string, cost: number, price: number, comment?: string, code?: string, discount?: number, discountPct?: number, status?: number){
     this.id = id;
     this.qty = qty;
     this.name = name;
     this.cost = cost;
     this.price = price;
     this.comment = comment;
+    this.code = code;
     this.discount = discount;
     this.discountPct = discountPct;
     this.status = status;
