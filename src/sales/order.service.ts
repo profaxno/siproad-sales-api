@@ -2,7 +2,7 @@ import { In, InsertResult, Like, Raw, Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
 // import { nanoid } from 'nanoid'
 import { ProcessSummaryDto, SearchInputDto, SearchPaginationDto } from 'profaxnojs/util';
-const generateCode = require('../../src/utils/nanoid-wrapper.cjs'); 
+const generateCode = require('../../nanoid-wrapper.cjs'); 
 import * as moment from 'moment-timezone';
 
 import { Injectable, Logger, NotFoundException, Query } from '@nestjs/common';
