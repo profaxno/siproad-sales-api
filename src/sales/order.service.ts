@@ -114,7 +114,7 @@ export class OrderService {
       if(error instanceof NotFoundException)
         throw error;
 
-      this.logger.error(`update: error`, error);
+      this.logger.error(`update: error=${error.message}`);
       throw error;
     })
 
@@ -145,7 +145,7 @@ export class OrderService {
       if(error instanceof NotFoundException || error instanceof AlreadyExistException)
         throw error;
 
-      this.logger.error(`create: error`, error);
+      this.logger.error(`create: error=${error.message}`);
       throw error;
     })
     
@@ -432,6 +432,10 @@ export class OrderService {
       })
 
     })
+    .catch(error => {
+      this.logger.error(`updateOrderProduct: error=${error.message}`);
+      throw error;
+    })
 
   }
 
@@ -441,20 +445,26 @@ export class OrderService {
 
     const newOrderProductList: OrderProduct[] = orderProductList.map( (value) => this.orderProductRepository.create(value));
     
-    return this.orderProductRepository.manager.transaction( async(transactionalEntityManager) => {
-      
-      return transactionalEntityManager
-        .createQueryBuilder()
-        .insert()
-        .into(OrderProduct)
-        .values(newOrderProductList)
-        .execute()
-        .then( (insertResult: InsertResult) => {
-          const end = performance.now();
-          this.logger.log(`bulkInsertOrderProducts: OK, runtime=${(end - start) / 1000} seconds, insertResult=${JSON.stringify(insertResult.raw)}`);
-          return newOrderProductList;
-        })
-    })
+    try {
+      return this.orderProductRepository.manager.transaction( async(transactionalEntityManager) => {
+        
+        return transactionalEntityManager
+          .createQueryBuilder()
+          .insert()
+          .into(OrderProduct)
+          .values(newOrderProductList)
+          .execute()
+          .then( (insertResult: InsertResult) => {
+            const end = performance.now();
+            this.logger.log(`bulkInsertOrderProducts: OK, runtime=${(end - start) / 1000} seconds, insertResult=${JSON.stringify(insertResult.raw)}`);
+            return newOrderProductList;
+          })
+      })
+
+    } catch (error) {
+      this.logger.error(`bulkInsertOrderProducts: error=${error.message}`);
+      throw error;
+    }
   }
 
   generateOrderWithProductList(order: Order, orderProductList: OrderProduct[]): OrderDto {
