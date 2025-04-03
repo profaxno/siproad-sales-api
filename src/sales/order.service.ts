@@ -420,11 +420,11 @@ export class OrderService {
       })
 
     })
-    .then( (orderProductList: OrderProduct[]) => {
+    .then( (orderProductListToInsert: OrderProduct[]) => {
 
       return this.orderProductRepository.findBy( { order } ) // * find order products to remove
       .then( (orderProductListToDelete: OrderProduct[]) => this.orderProductRepository.remove(orderProductListToDelete) ) // * remove order products
-      .then( () => this.bulkInsertOrderProducts(orderProductList) ) // * insert order products
+      .then( () => this.bulkInsertOrderProducts(orderProductListToInsert) ) // * insert order products
       .then( (orderProductList: OrderProduct[]) => {
         const end = performance.now();
         this.logger.log(`updateOrderProduct: OK, runtime=${(end - start) / 1000} seconds`);
