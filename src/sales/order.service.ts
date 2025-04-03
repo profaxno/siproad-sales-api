@@ -394,7 +394,7 @@ export class OrderService {
       // * validate
       if(productList.length !== productIdList.length){
         const productIdNotFoundList: string[] = productIdList.filter( (id) => !productList.find( (product) => product.id == id) );
-        const msg = `products not found, idList=${JSON.stringify(productIdNotFoundList)}`;
+        const msg = `products not found, IdList=(${productIdList.length})${JSON.stringify(productIdList)}, IdNotFoundList=(${productIdNotFoundList.length})${JSON.stringify(productIdNotFoundList)}`;
         throw new NotFoundException(msg); 
       }
 
