@@ -386,15 +386,17 @@ export class OrderService {
 
     // * find products by id
     const productIdList = orderProductDtoList.map( (item) => item.id );
-    const inputDto: SearchInputDto = new SearchInputDto(undefined, undefined, productIdList);
+    const uniqueProductIdList: string[] = [...new Set(productIdList)]; // * remove duplicates
+
+    const inputDto: SearchInputDto = new SearchInputDto(undefined, undefined, uniqueProductIdList);
 
     return this.productService.findByParams({}, inputDto)
     .then( (productList: Product[]) => {
 
       // * validate
-      if(productList.length !== productIdList.length){
-        const productIdNotFoundList: string[] = productIdList.filter( (id) => !productList.find( (product) => product.id == id) );
-        const msg = `products not found, IdList=(${productIdList.length})${JSON.stringify(productIdList)}, IdNotFoundList=(${productIdNotFoundList.length})${JSON.stringify(productIdNotFoundList)}`;
+      if(productList.length !== uniqueProductIdList.length){
+        const productIdNotFoundList: string[] = uniqueProductIdList.filter( (id) => !productList.find( (product) => product.id == id) );
+        const msg = `products not found, IdList=(${uniqueProductIdList.length})${JSON.stringify(uniqueProductIdList)}, IdNotFoundList=(${productIdNotFoundList.length})${JSON.stringify(productIdNotFoundList)}`;
         throw new NotFoundException(msg); 
       }
 
