@@ -398,33 +398,33 @@ export class OrderService {
         throw new NotFoundException(msg); 
       }
 
-      // * create orderProduct
-      return this.orderProductRepository.findBy( { order } ) // * find orderProduct
-      .then( (orderProductList: OrderProduct[]) => this.orderProductRepository.remove(orderProductList)) // * remove orderProducts
-      .then( () => {
+      // * generate order product list
+      return orderProductDtoList.map( (orderProductDto: OrderProductDto) => {
         
-        // * generate order product list
-        return productList.map( (product: Product) => {
-          const orderProductDto = orderProductDtoList.find( (value) => value.id == product.id);
+        const product = productList.find( (value) => value.id == orderProductDto.id);
 
-          const orderProduct = new OrderProduct();
-          orderProduct.order    = order;
-          orderProduct.product  = product;
-          orderProduct.qty      = orderProductDto.qty;
-          orderProduct.comment  = orderProductDto.comment;
-          orderProduct.name     = product.name;
-          orderProduct.code     = product.code;
-          orderProduct.cost     = orderProductDto.cost;
-          orderProduct.price    = orderProductDto.price;
-          orderProduct.discount = orderProductDto.discount;
-          orderProduct.discountPct = orderProductDto.discountPct;
-          orderProduct.status   = orderProductDto.status;
-          
-          return orderProduct;
-        })
-
+        const orderProduct = new OrderProduct();
+        orderProduct.order    = order;
+        orderProduct.product  = product;
+        orderProduct.qty      = orderProductDto.qty;
+        orderProduct.comment  = orderProductDto.comment;
+        orderProduct.name     = product.name;
+        orderProduct.code     = product.code;
+        orderProduct.cost     = orderProductDto.cost;
+        orderProduct.price    = orderProductDto.price;
+        orderProduct.discount = orderProductDto.discount;
+        orderProduct.discountPct = orderProductDto.discountPct;
+        orderProduct.status   = orderProductDto.status;
+        
+        return orderProduct;
       })
-      .then( (orderProductList: OrderProduct[]) => this.bulkInsertOrderProducts(orderProductList) ) // * bulk insert
+
+    })
+    .then( (orderProductListToInsert: OrderProduct[]) => {
+
+      return this.orderProductRepository.findBy( { order } ) // * find order products to remove
+      .then( (orderProductListToDelete: OrderProduct[]) => this.orderProductRepository.remove(orderProductListToDelete) ) // * remove order products
+      .then( () => this.bulkInsertOrderProducts(orderProductListToInsert) ) // * insert order products
       .then( (orderProductList: OrderProduct[]) => {
         const end = performance.now();
         this.logger.log(`updateOrderProduct: OK, runtime=${(end - start) / 1000} seconds`);
