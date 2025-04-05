@@ -284,7 +284,7 @@ export class OrderService {
           entity.code           = code.toUpperCase();
           entity.company        = companyList[0];
           entity.user           = userList[0];
-          entity.customerIdDoc  = dto.customerIdDoc;
+          entity.customerIdDoc  = dto.customerIdDoc?.toUpperCase();
           entity.customerName   = dto.customerName?.toUpperCase();
           entity.customerEmail  = dto.customerEmail?.toUpperCase();
           entity.customerPhone  = dto.customerPhone;

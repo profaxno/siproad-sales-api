@@ -26,6 +26,6 @@ import { Company, User, Order, OrderProduct, Product, ProductType } from './enti
   ],
   controllers: [CompanyController, UserController, OrderController, ProductController, ProductTypeController],
   providers: [CompanyService, UserService, OrderService, ProductService, ProductTypeService],
-  exports: []
+  exports: [ProductService]
 })
 export class SalesModule {}

@@ -8,5 +8,10 @@ export const config = () => ({
     executionRetries: +process.env.EXECUTION_RETRIES || 2,
     executionBaseDelay: +process.env.EXECUTION_BASE_DELAY || 1000,
 
-    dbDefaultLimit: +process.env.DB_DEFAULT_LIMIT || 1000
+    dbDefaultLimit: +process.env.DB_DEFAULT_LIMIT || 1000,
+
+    redisHost: process.env.REDIS_HOST,
+    redisPort: +process.env.REDIS_PORT || 6379,
+    redisPassword: process.env.REDIS_PASSWORD,
+    redisFamily: +process.env.REDIS_FAMILY
   })
