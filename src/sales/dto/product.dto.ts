@@ -14,7 +14,7 @@ export class ProductDto {
   companyId: string;
 
   @IsString()
-  @MaxLength(50)
+  @MaxLength(100)
   name: string;
 
   @IsString()
