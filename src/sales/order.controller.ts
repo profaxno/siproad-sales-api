@@ -4,6 +4,7 @@ import { ProcessSummaryDto, SearchInputDto, SearchPaginationDto } from 'profaxno
 import { Controller, Get, Body, Patch, Param, Delete, Logger, HttpCode, HttpStatus, Query, ParseUUIDPipe, ParseArrayPipe, NotFoundException, Post } from '@nestjs/common';
 
 import { OrderDto } from './dto';
+import { OrderSearchInputDto } from './dto/order-search.dto';
 import { OrderService } from './order.service';
 import { AlreadyExistException, IsBeingUsedException } from '../common/exceptions/common.exception';
 
@@ -61,31 +62,31 @@ export class OrderController {
     })
   }
 
-  @Get('/find/:companyId')
-  find(
-    @Param('companyId', ParseUUIDPipe) companyId: string,
-    @Query() paginationDto: SearchPaginationDto,
-    @Body() inputDto: SearchInputDto
-  ): Promise<PfxHttpResponseDto> {
+  // @Get('/find/:companyId')
+  // find(
+  //   @Param('companyId', ParseUUIDPipe) companyId: string,
+  //   @Query() paginationDto: SearchPaginationDto,
+  //   @Body() inputDto: SearchInputDto
+  // ): Promise<PfxHttpResponseDto> {
 
-    this.logger.log(`>>> find: companyId=${companyId}, paginationDto=${JSON.stringify(paginationDto)}, inputDto=${JSON.stringify(inputDto)}`);
-    const start = performance.now();
+  //   this.logger.log(`>>> find: companyId=${companyId}, paginationDto=${JSON.stringify(paginationDto)}, inputDto=${JSON.stringify(inputDto)}`);
+  //   const start = performance.now();
 
-    return this.orderService.find(companyId, paginationDto, inputDto)
-    .then( (dtoList: OrderDto[]) => {
-      const response = new PfxHttpResponseDto(HttpStatus.OK, 'executed', dtoList.length, dtoList);
-      const end = performance.now();
-      this.logger.log(`<<< find: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
-      return response;
-    })
-    .catch( (error: Error) => {
-      if(error instanceof NotFoundException)
-        return new PfxHttpResponseDto(HttpStatus.NOT_FOUND, error.message, 0, []);
+  //   return this.orderService.find(companyId, paginationDto, inputDto)
+  //   .then( (dtoList: OrderDto[]) => {
+  //     const response = new PfxHttpResponseDto(HttpStatus.OK, 'executed', dtoList.length, dtoList);
+  //     const end = performance.now();
+  //     this.logger.log(`<<< find: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
+  //     return response;
+  //   })
+  //   .catch( (error: Error) => {
+  //     if(error instanceof NotFoundException)
+  //       return new PfxHttpResponseDto(HttpStatus.NOT_FOUND, error.message, 0, []);
 
-      this.logger.error(error.stack);
-      return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
-    })
-  }
+  //     this.logger.error(error.stack);
+  //     return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
+  //   })
+  // }
 
   @Get('/findOneById/:id')
   findOneById(@Param('id', ParseUUIDPipe) id: string): Promise<PfxHttpResponseDto> {
@@ -109,20 +110,21 @@ export class OrderController {
 
   }
 
-  @Get('/findByValue/:companyId/:value')
-  findByValue(
+  @Get('/searchByValues/:companyId')
+    searchByValues(
     @Param('companyId', ParseUUIDPipe) companyId: string,
-    @Param('value') value: string
+    @Query() paginationDto: SearchPaginationDto,
+    @Body() inputDto: OrderSearchInputDto
   ): Promise<PfxHttpResponseDto> {
+
+    this.logger.log(`>>> searchByValues: companyId=${companyId}, paginationDto=${JSON.stringify(paginationDto)}, inputDto=${JSON.stringify(inputDto)}`);
+    const start = performance.now();
     
-    this.logger.log(`>>> findByValue: companyId=${companyId}, value=${value}`);
-    const start = performance.now();
-
-    return this.orderService.findOneById(value, companyId)
+    return this.orderService.searchByValues(companyId, paginationDto, inputDto)
     .then( (dtoList: OrderDto[]) => {
-      const response = new PfxHttpResponseDto(HttpStatus.OK, 'executed', dtoList.length, dtoList);
+      const response = new PfxHttpResponseDto(HttpStatus.OK, "executed", dtoList.length, dtoList);
       const end = performance.now();
-      this.logger.log(`<<< findByValue: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
+      this.logger.log(`<<< searchByValues: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
       return response;
     })
     .catch( (error: Error) => {
@@ -132,31 +134,56 @@ export class OrderController {
       this.logger.error(error.stack);
       return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
     })
-
   }
 
-  @Delete('/:id')
-  remove(@Param('id', ParseUUIDPipe) id: string): Promise<PfxHttpResponseDto> {
-    this.logger.log(`>>> remove: id=${id}`);
-    const start = performance.now();
+  // @Get('/findByValue/:companyId/:value')
+  // findByValue(
+  //   @Param('companyId', ParseUUIDPipe) companyId: string,
+  //   @Param('value') value: string
+  // ): Promise<PfxHttpResponseDto> {
+    
+  //   this.logger.log(`>>> findByValue: companyId=${companyId}, value=${value}`);
+  //   const start = performance.now();
 
-    return this.orderService.remove(id)
-    .then( (msg: string) => {
-      const response = new PfxHttpResponseDto(HttpStatus.OK, msg);
-      const end = performance.now();
-      this.logger.log(`<<< remove: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
-      return response;
-    })
-    .catch( (error: Error) => {
-      if(error instanceof NotFoundException)
-        return new PfxHttpResponseDto(HttpStatus.NOT_FOUND, error.message, 0, []);
+  //   return this.orderService.findOneById(value, companyId)
+  //   .then( (dtoList: OrderDto[]) => {
+  //     const response = new PfxHttpResponseDto(HttpStatus.OK, 'executed', dtoList.length, dtoList);
+  //     const end = performance.now();
+  //     this.logger.log(`<<< findByValue: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
+  //     return response;
+  //   })
+  //   .catch( (error: Error) => {
+  //     if(error instanceof NotFoundException)
+  //       return new PfxHttpResponseDto(HttpStatus.NOT_FOUND, error.message, 0, []);
 
-      if(error instanceof IsBeingUsedException)
-        return new PfxHttpResponseDto(HttpStatus.BAD_REQUEST, error.message, 0, []);
+  //     this.logger.error(error.stack);
+  //     return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
+  //   })
 
-      this.logger.error(error.stack);
-      return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
-    })
-  }
+  // }
+
+  // @Delete('/:id')
+  // remove(@Param('id', ParseUUIDPipe) id: string): Promise<PfxHttpResponseDto> {
+  //   this.logger.log(`>>> remove: id=${id}`);
+  //   const start = performance.now();
+
+  //   return this.orderService.remove(id)
+  //   .then( (msg: string) => {
+  //     const response = new PfxHttpResponseDto(HttpStatus.OK, msg);
+  //     const end = performance.now();
+  //     this.logger.log(`<<< remove: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
+  //     return response;
+  //   })
+  //   .catch( (error: Error) => {
+  //     if(error instanceof NotFoundException)
+  //       return new PfxHttpResponseDto(HttpStatus.NOT_FOUND, error.message, 0, []);
+
+  //     if(error instanceof IsBeingUsedException)
+  //       return new PfxHttpResponseDto(HttpStatus.BAD_REQUEST, error.message, 0, []);
+
+  //     this.logger.error(error.stack);
+  //     return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
+  //   })
+  // }
   
 }

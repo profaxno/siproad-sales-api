@@ -1,4 +1,4 @@
-import { In, InsertResult, Like, Raw, Repository } from 'typeorm';
+import { Brackets, In, InsertResult, Like, Raw, Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
 // import { nanoid } from 'nanoid'
 import { ProcessSummaryDto, SearchInputDto, SearchPaginationDto } from 'profaxnojs/util';
@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { OrderDto, OrderProductDto } from './dto/order.dto';
+import { OrderSearchInputDto } from './dto/order-search.dto';
 import { Order, OrderProduct, Product, Company, User } from './entities';
 
 import { CompanyService } from './company.service';
@@ -151,30 +152,30 @@ export class OrderService {
     
   }
 
-  find(companyId: string, paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<OrderDto[]> {
-    const start = performance.now();
+  // find(companyId: string, paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<OrderDto[]> {
+  //   const start = performance.now();
 
-    return this.findByParams(paginationDto, inputDto, companyId)
-    .then( (entityList: Order[]) => entityList.map( (entity) => this.generateOrderWithProductList(entity, entity.orderProduct) ) )
-    .then( (dtoList: OrderDto[]) => {
+  //   return this.findByParams(paginationDto, inputDto, companyId)
+  //   .then( (entityList: Order[]) => entityList.map( (entity) => this.generateOrderWithProductList(entity, entity.orderProduct) ) )
+  //   .then( (dtoList: OrderDto[]) => {
       
-      if(dtoList.length == 0){
-        const msg = `orders not found`;
-        this.logger.warn(`find: ${msg}`);
-        return [];
-        // throw new NotFoundException(msg);
-      }
+  //     if(dtoList.length == 0){
+  //       const msg = `orders not found`;
+  //       this.logger.warn(`find: ${msg}`);
+  //       return [];
+  //       // throw new NotFoundException(msg);
+  //     }
 
-      const end = performance.now();
-      this.logger.log(`find: executed, runtime=${(end - start) / 1000} seconds`);
-      return dtoList;
-    })
-    .catch(error => {
-      this.logger.error(`find: error`, error);
-      throw error;
-    })
+  //     const end = performance.now();
+  //     this.logger.log(`find: executed, runtime=${(end - start) / 1000} seconds`);
+  //     return dtoList;
+  //   })
+  //   .catch(error => {
+  //     this.logger.error(`find: error`, error);
+  //     throw error;
+  //   })
  
-  }
+  // }
 
   findOneById(id: string, companyId?: string): Promise<OrderDto[]> {
     const start = performance.now();
@@ -200,6 +201,33 @@ export class OrderService {
         throw error;
 
       this.logger.error(`findOneById: error`, error);
+      throw error;
+    })
+    
+  }
+
+  searchByValues(companyId: string, paginationDto: SearchPaginationDto, inputDto: OrderSearchInputDto): Promise<OrderDto[]> {
+    const start = performance.now();
+
+    return this.searchEntitiesByValues(companyId, paginationDto, inputDto)
+    .then( (entityList: Order[]) => entityList.map( (entity) => this.generateOrderWithProductList(entity, entity.orderProduct) ) )
+    .then( (dtoList: OrderDto[]) => {
+      
+      if(dtoList.length == 0){
+        const msg = `products not found, inputDto=${JSON.stringify(inputDto)}`;
+        this.logger.warn(`searchByValues: ${msg}`);
+        throw new NotFoundException(msg);
+      }
+
+      const end = performance.now();
+      this.logger.log(`searchByValues: executed, runtime=${(end - start) / 1000} seconds`);
+      return dtoList;
+    })
+    .catch(error => {
+      if(error instanceof NotFoundException)
+        throw error;
+
+      this.logger.error(`searchByValues: error`, error);
       throw error;
     })
     
@@ -360,6 +388,48 @@ export class OrderService {
       order: { createdAt: "DESC" }
     })
     
+  }
+
+  private searchEntitiesByValues(companyId: string, paginationDto: SearchPaginationDto, inputDto: OrderSearchInputDto): Promise<Order[]> {
+    const {page=1, limit=this.dbDefaultLimit} = paginationDto;
+
+    const query = this.orderRepository.createQueryBuilder('a')
+    .leftJoinAndSelect('a.company', 'company')
+    .leftJoinAndSelect('a.orderProduct', 'orderProduct')
+    .leftJoinAndSelect('orderProduct.product', 'product')
+    .where('a.companyId = :companyId', { companyId })
+    .andWhere('a.active = :active', { active: true });
+
+    if(inputDto.code) {
+      const formatted = `%${inputDto.code?.toLowerCase().replace(' ', '%')}%`;
+      query.andWhere('a.code LIKE :code', { code: formatted });
+    }
+
+    if(inputDto.customerNameIdDoc) {
+      const formatted = `%${inputDto.customerNameIdDoc?.toLowerCase().replace(' ', '%')}%`;
+      query.andWhere(
+        new Brackets(qb => {
+          qb.where('a.customerName LIKE :customerName').orWhere('a.customerIdDoc LIKE :customerIdDoc');
+        }),
+        {
+          customerName: formatted,
+          customerIdDoc: formatted,
+        }
+      );
+
+      // const formatted = `%${inputDto.customerNameIdDoc.replace(' ', '%')}%`;
+      // query.andWhere('a.customerName LIKE :customerName OR a.customerIdDoc LIKE :customerIdDoc', { customerName: formatted, customerIdDoc: formatted });
+    }
+
+    if(inputDto.comment) {
+      const formatted = `%${inputDto.comment?.toLowerCase().replace(' ', '%')}%`;
+      query.andWhere('a.comment LIKE :comment', { comment: formatted });
+    }
+
+    return query
+    .skip((page - 1) * limit)
+    .take(limit)
+    .getMany();
   }
 
   private save(entity: Order): Promise<Order> {
