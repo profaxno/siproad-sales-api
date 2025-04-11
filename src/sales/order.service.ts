@@ -214,7 +214,7 @@ export class OrderService {
     .then( (dtoList: OrderDto[]) => {
       
       if(dtoList.length == 0){
-        const msg = `products not found, inputDto=${JSON.stringify(inputDto)}`;
+        const msg = `orders not found, inputDto=${JSON.stringify(inputDto)}`;
         this.logger.warn(`searchByValues: ${msg}`);
         throw new NotFoundException(msg);
       }
