@@ -1,4 +1,4 @@
-import { In, Like, Raw, Repository } from 'typeorm';
+import { Brackets, In, Like, Raw, Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
 import { ProcessSummaryDto, SearchInputDto, SearchPaginationDto } from 'profaxnojs/util';
 
@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { ProductDto } from './dto/product.dto';
+import { ProductSearchInputDto } from './dto/product-search.dto';
 import { Product, Company, ProductType } from './entities';
 
 import { CompanyService } from './company.service';
@@ -144,32 +145,32 @@ export class ProductService {
     
   }
 
-  find(companyId: string, paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<ProductDto[]> {
-    const start = performance.now();
+  // find(companyId: string, paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<ProductDto[]> {
+  //   const start = performance.now();
 
-    return this.findByParams(paginationDto, inputDto, companyId)
-    .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.cost, entity.price, entity.id, entity.code, entity.productType?.id, entity.description, entity.imagenUrl) ) )
-    .then( (dtoList: ProductDto[]) => {
+  //   return this.findByParams(paginationDto, inputDto, companyId)
+  //   .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.cost, entity.price, entity.id, entity.code, entity.productType?.id, entity.description, entity.imagenUrl) ) )
+  //   .then( (dtoList: ProductDto[]) => {
       
-      if(dtoList.length == 0){
-        const msg = `products not found`;
-        this.logger.warn(`find: ${msg}`);
-        throw new NotFoundException(msg);
-      }
+  //     if(dtoList.length == 0){
+  //       const msg = `products not found`;
+  //       this.logger.warn(`find: ${msg}`);
+  //       throw new NotFoundException(msg);
+  //     }
 
-      const end = performance.now();
-      this.logger.log(`find: executed, runtime=${(end - start) / 1000} seconds`);
-      return dtoList;
-    })
-    .catch(error => {
-      if(error instanceof NotFoundException)
-        throw error;
+  //     const end = performance.now();
+  //     this.logger.log(`find: executed, runtime=${(end - start) / 1000} seconds`);
+  //     return dtoList;
+  //   })
+  //   .catch(error => {
+  //     if(error instanceof NotFoundException)
+  //       throw error;
 
-      this.logger.error(`find: error`, error);
-      throw error;
-    })
+  //     this.logger.error(`find: error`, error);
+  //     throw error;
+  //   })
  
-  }
+  // }
 
   findOneById(id: string, companyId?: string): Promise<ProductDto[]> {
     const start = performance.now();
@@ -200,32 +201,59 @@ export class ProductService {
     
   }
 
-  findByCategory(companyId: string, categoryId: string, paginationDto: SearchPaginationDto): Promise<ProductDto[]> {
+  searchByValues(companyId: string, paginationDto: SearchPaginationDto, inputDto: ProductSearchInputDto): Promise<ProductDto[]> {
     const start = performance.now();
 
-    return this.findProductsByCategory(paginationDto, companyId, categoryId)
+    return this.searchEntitiesByValues(companyId, paginationDto, inputDto)
     .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.cost, entity.price, entity.id, entity.code, entity.productType?.id, entity.description, entity.imagenUrl) ) )
     .then( (dtoList: ProductDto[]) => {
       
       if(dtoList.length == 0){
-        const msg = `products not found, categoryId=${categoryId}`;
-        this.logger.warn(`findByCategory: ${msg}`);
+        const msg = `products not found, inputDto=${JSON.stringify(inputDto)}`;
+        this.logger.warn(`searchByValues: ${msg}`);
         throw new NotFoundException(msg);
       }
 
       const end = performance.now();
-      this.logger.log(`findByCategory: executed, runtime=${(end - start) / 1000} seconds`);
+      this.logger.log(`searchByValues: executed, runtime=${(end - start) / 1000} seconds`);
       return dtoList;
     })
     .catch(error => {
       if(error instanceof NotFoundException)
         throw error;
 
-      this.logger.error(`findByCategory: error`, error);
+      this.logger.error(`searchByValues: error`, error);
       throw error;
     })
     
   }
+
+  // findByCategory(companyId: string, categoryId: string, paginationDto: SearchPaginationDto): Promise<ProductDto[]> {
+  //   const start = performance.now();
+
+  //   return this.findProductsByCategory(paginationDto, companyId, categoryId)
+  //   .then( (entityList: Product[]) => entityList.map( (entity) => new ProductDto(entity.company.id, entity.name, entity.cost, entity.price, entity.id, entity.code, entity.productType?.id, entity.description, entity.imagenUrl) ) )
+  //   .then( (dtoList: ProductDto[]) => {
+      
+  //     if(dtoList.length == 0){
+  //       const msg = `products not found, categoryId=${categoryId}`;
+  //       this.logger.warn(`findByCategory: ${msg}`);
+  //       throw new NotFoundException(msg);
+  //     }
+
+  //     const end = performance.now();
+  //     this.logger.log(`findByCategory: executed, runtime=${(end - start) / 1000} seconds`);
+  //     return dtoList;
+  //   })
+  //   .catch(error => {
+  //     if(error instanceof NotFoundException)
+  //       throw error;
+
+  //     this.logger.error(`findByCategory: error`, error);
+  //     throw error;
+  //   })
+    
+  // }
 
   remove(id: string): Promise<string> {
     this.logger.warn(`remove: starting process... id=${id}`);
@@ -333,6 +361,47 @@ export class ProductService {
     
   }
 
+  private searchEntitiesByValues(companyId: string, paginationDto: SearchPaginationDto, inputDto: ProductSearchInputDto): Promise<Product[]> {
+    const {page=1, limit=this.dbDefaultLimit} = paginationDto;
+
+    const query = this.productRepository.createQueryBuilder('a')
+    .leftJoinAndSelect('a.company', 'company')
+    .where('a.companyId = :companyId', { companyId })
+    .andWhere('a.active = :active', { active: true });
+
+    if(inputDto.nameCodeList.length > 0) {
+      query.andWhere(
+        new Brackets(qb => {
+
+          inputDto.nameCodeList.forEach((value, index) => {
+            const formatted = `%${value.replace(' ', '%')}%`; // const formatted = `%${value.replace(/ /g, '%')}%`;
+            if (index === 0) {
+              qb.where('a.name LIKE :name0 OR a.code LIKE :code0', {
+                [`name0`]: formatted,
+                [`code0`]: formatted,
+              })
+            } else {
+              qb.orWhere('a.name LIKE :name' + index + ' OR a.code LIKE :code' + index, {
+                [`name${index}`]: formatted,
+                [`code${index}`]: formatted,
+              })
+            }
+          })
+
+        })
+      )
+    }
+
+    if(inputDto.productTypeId) {
+      query.andWhere('a.productTypeId = :productTypeId', { productTypeId: inputDto.productTypeId });
+    }
+
+    return query
+    .skip((page - 1) * limit)
+    .take(limit)
+    .getMany();
+  }
+
   private prepareEntity(entity: Product, dto: ProductDto): Promise<Product> {
 
     // * find company
@@ -384,23 +453,23 @@ export class ProductService {
     })
   }
 
-  private findProductsByCategory(paginationDto: SearchPaginationDto, companyId: string, categoryId: string): Promise<Product[]> {
-    const {page=1, limit=this.dbDefaultLimit} = paginationDto;
+  // private findProductsByCategory(paginationDto: SearchPaginationDto, companyId: string, categoryId: string): Promise<Product[]> {
+  //   const {page=1, limit=this.dbDefaultLimit} = paginationDto;
     
-    return this.productRepository.find({
-      take: limit,
-      skip: (page - 1) * limit,
-      where: {
-        company: { 
-          id: companyId 
-        },
-        productType: {
-          id: categoryId
-        },
-        active: true,
-      }
-    })
+  //   return this.productRepository.find({
+  //     take: limit,
+  //     skip: (page - 1) * limit,
+  //     where: {
+  //       company: { 
+  //         id: companyId 
+  //       },
+  //       productType: {
+  //         id: categoryId
+  //       },
+  //       active: true,
+  //     }
+  //   })
     
-  }
+  // }
 
 }
