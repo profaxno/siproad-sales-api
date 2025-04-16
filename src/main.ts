@@ -1,7 +1,8 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app.module';
+import { ApiKeyGuard } from './auth/guards/api-key.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -29,7 +30,10 @@ async function bootstrap() {
   // const document = SwaggerModule.createDocument(app, config);
   
   // SwaggerModule.setup('api', app, document);
-  
+
+  const reflector = app.get(Reflector);
+  app.useGlobalGuards(new ApiKeyGuard(reflector));
+
   await app.listen(process.env.PORT);
   
   const env = process.env.ENV.padEnd(20, ' ');

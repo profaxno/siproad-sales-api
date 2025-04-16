@@ -400,6 +400,16 @@ export class OrderService {
     .where('a.companyId = :companyId', { companyId })
     .andWhere('a.active = :active', { active: true });
 
+    if(inputDto.createdAtInit) {
+      const createdAtInit = moment.tz(inputDto.createdAtInit, DateEnum.TIME_ZONE).utc().format(DateEnum.DATETIME_FORMAT)
+      query.andWhere('a.createdAt >= :createdAtInit', { createdAtInit: createdAtInit });
+    }
+
+    if(inputDto.createdAtEnd) {
+      const createdAtEnd = moment.tz(inputDto.createdAtEnd, DateEnum.TIME_ZONE).utc().format(DateEnum.DATETIME_FORMAT)
+      query.andWhere('a.createdAt <= :createdAtEnd', { createdAtEnd: createdAtEnd });
+    }
+
     if(inputDto.code) {
       const formatted = `%${inputDto.code?.toLowerCase().replace(' ', '%')}%`;
       query.andWhere('a.code LIKE :code', { code: formatted });
@@ -429,6 +439,7 @@ export class OrderService {
     return query
     .skip((page - 1) * limit)
     .take(limit)
+    .orderBy("a.createdAt", "DESC")
     .getMany();
   }
 
@@ -553,6 +564,19 @@ export class OrderService {
       price = orderProductDtoList.reduce( (acc, dto) => acc + (dto.qty * dto.price), 0);
     }
 
+    // const a = moment.tz(order.createdAt, "America/Santiago").format(DateEnum.DATETIME_FORMAT);
+    // const a2 = order.createdAt; // esto ya tiene GMT-4
+    // const a3 = moment(order.createdAt).format();
+    // const a4 = moment(order.createdAt).tz("America/Santiago").format();
+    // const a5 = moment.utc(order.createdAt).tz("America/Santiago").format();
+
+    // const fechaUTC = '2025-04-15 03:11:17';
+    // const fechaChile = moment.utc(fechaUTC).tz('America/Santiago').format('YYYY-MM-DD HH:mm:ss');
+
+    // * format createdAt
+    let createdAtFormat = moment(order.createdAt).format(DateEnum.DATETIME_FORMAT);
+    createdAtFormat     = moment.utc(createdAtFormat).tz(DateEnum.TIME_ZONE).format(DateEnum.DATETIME_FORMAT);
+
     // * generate order dto
     const orderDto = new OrderDto(
       order.company.id,
@@ -567,7 +591,7 @@ export class OrderService {
       order.discount,
       order.discountPct,
       order.status,
-      moment(order.createdAt).format(DateEnum.DATETIME_FORMAT),
+      createdAtFormat,
       order.company,
       order.user,
       orderProductDtoList,
