@@ -490,7 +490,7 @@ export class OrderService {
         orderProduct.order    = order;
         orderProduct.product  = product;
         orderProduct.qty      = orderProductDto.qty;
-        orderProduct.comment  = orderProductDto.comment;
+        orderProduct.comment  = orderProductDto.comment?.toUpperCase();
         orderProduct.name     = product.name;
         orderProduct.code     = product.code;
         orderProduct.cost     = orderProductDto.cost;
