@@ -156,7 +156,7 @@ export class OrderProductDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
+  @MaxLength(250)
   comment?: string;
 
   @IsString()
