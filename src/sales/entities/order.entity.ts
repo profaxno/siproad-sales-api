@@ -25,7 +25,7 @@ export class Order {
   @Column('varchar', { length: 150, nullable: true })
   customerAddress: string;
 
-  @Column('varchar', { length: 100, nullable: true })
+  @Column('varchar', { length: 250, nullable: true })
   comment: string;
 
   @Column('double', { default: 0 })
