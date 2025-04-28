@@ -317,10 +317,10 @@ export class OrderService {
           entity.customerEmail  = dto.customerEmail?.toUpperCase();
           entity.customerPhone  = dto.customerPhone;
           entity.customerAddress = dto.customerAddress?.toUpperCase();
-          entity.comment        = dto.comment?.toUpperCase();
+          entity.comment        = dto.comment;
           entity.discount       = dto.discount;
           entity.discountPct    = dto.discountPct;
-          entity.status         = dto.status; // TODO: poner requerido el status aqui y en el graphql
+          entity.status         = dto.status;
           
           return entity;
         })
@@ -490,7 +490,7 @@ export class OrderService {
         orderProduct.order    = order;
         orderProduct.product  = product;
         orderProduct.qty      = orderProductDto.qty;
-        orderProduct.comment  = orderProductDto.comment?.toUpperCase();
+        orderProduct.comment  = orderProductDto.comment;
         orderProduct.name     = product.name;
         orderProduct.code     = product.code;
         orderProduct.cost     = orderProductDto.cost;
