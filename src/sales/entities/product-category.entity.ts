@@ -1,8 +1,8 @@
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Company, Product } from "./";
+import { Company, Product } from ".";
 
-@Entity("sal_product_type")
-export class ProductType {
+@Entity("sal_product_category")
+export class ProductCategory {
   
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -22,7 +22,7 @@ export class ProductType {
 
   @OneToMany(
     () => Product,
-    (product) => product.productType
+    (product) => product.productCategory
   )
   product: Product;
 

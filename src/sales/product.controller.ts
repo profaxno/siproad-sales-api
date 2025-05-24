@@ -63,54 +63,6 @@ export class ProductController {
     
   }
 
-  // @Get('/find/:companyId')
-  // find(
-  //   @Param('companyId', ParseUUIDPipe) companyId: string,
-  //   @Query() paginationDto: SearchPaginationDto,
-  //   @Body() inputDto: SearchInputDto
-  // ): Promise<PfxHttpResponseDto> {
-
-  //   this.logger.log(`>>> find: companyId=${companyId}, paginationDto=${JSON.stringify(paginationDto)}, inputDto=${JSON.stringify(inputDto)}`);
-  //   const start = performance.now();
-    
-  //   return this.productService.find(companyId, paginationDto, inputDto)
-  //   .then( (dtoList: ProductDto[]) => {
-  //     const response = new PfxHttpResponseDto(HttpStatus.OK, "executed", dtoList.length, dtoList);
-  //     const end = performance.now();
-  //     this.logger.log(`<<< find: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
-  //     return response;
-  //   })
-  //   .catch( (error: Error) => {
-  //     if(error instanceof NotFoundException)
-  //       return new PfxHttpResponseDto(HttpStatus.NOT_FOUND, error.message, 0, []);
-
-  //     this.logger.error(error.stack);
-  //     return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
-  //   })
-  // }
-
-  @Get('/findOneById/:id')
-  findOneById(@Param('id', ParseUUIDPipe) id: string): Promise<PfxHttpResponseDto> {
-    this.logger.log(`>>> findOneById: id=${id}`);
-    const start = performance.now();
-
-    return this.productService.findOneById(id)
-    .then( (dtoList: ProductDto[]) => {
-      const response = new PfxHttpResponseDto(HttpStatus.OK, "executed", dtoList.length, dtoList);
-      const end = performance.now();
-      this.logger.log(`<<< findOneById: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
-      return response;
-    })
-    .catch( (error: Error) => {
-      if(error instanceof NotFoundException)
-        return new PfxHttpResponseDto(HttpStatus.NOT_FOUND, error.message, 0, []);
-
-      this.logger.error(error.stack);
-      return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
-    })
-
-  }
-
   @Get('/searchByValues/:companyId')
   searchByValues(
     @Param('companyId', ParseUUIDPipe) companyId: string,
@@ -136,59 +88,6 @@ export class ProductController {
       return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
     })
   }
-
-  // @Get('/findByValue/:companyId/:value')
-  // findByValue(
-  //   @Param('companyId', ParseUUIDPipe) companyId: string,
-  //   @Param('value') value: string
-  // ): Promise<PfxHttpResponseDto> {
-
-  //   this.logger.log(`>>> findByValue: companyId=${companyId}, value=${value}`);
-  //   const start = performance.now();
-
-  //   return this.productService.findOneById(value, companyId)
-  //   .then( (dtoList: ProductDto[]) => {
-  //     const response = new PfxHttpResponseDto(HttpStatus.OK, "executed", dtoList.length, dtoList);
-  //     const end = performance.now();
-  //     this.logger.log(`<<< findByValue: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
-  //     return response;
-  //   })
-  //   .catch( (error: Error) => {
-  //     if(error instanceof NotFoundException)
-  //       return new PfxHttpResponseDto(HttpStatus.NOT_FOUND, error.message, 0, []);
-
-  //     this.logger.error(error.stack);
-  //     return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
-  //   })
-
-  // }
-
-  // @Get('/findByCategory/:companyId/:categoryId')
-  // findByCategory(
-  //   @Param('companyId', ParseUUIDPipe) companyId: string,
-  //   @Param('categoryId', ParseUUIDPipe) categoryId: string,
-  //   @Query() paginationDto: SearchPaginationDto
-  // ): Promise<PfxHttpResponseDto> {
-
-  //   this.logger.log(`>>> findByCategory: companyId=${companyId}, categoryId=${categoryId}, paginationDto=${JSON.stringify(paginationDto)}`);
-  //   const start = performance.now();
-
-  //   return this.productService.findByCategory(companyId, categoryId, paginationDto)
-  //   .then( (dtoList: ProductDto[]) => {
-  //     const response = new PfxHttpResponseDto(HttpStatus.OK, "executed", dtoList.length, dtoList);
-  //     const end = performance.now();
-  //     this.logger.log(`<<< findByCategory: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
-  //     return response;
-  //   })
-  //   .catch( (error: Error) => {
-  //     if(error instanceof NotFoundException)
-  //       return new PfxHttpResponseDto(HttpStatus.NOT_FOUND, error.message, 0, []);
-
-  //     this.logger.error(error.stack);
-  //     return new PfxHttpResponseDto(HttpStatus.INTERNAL_SERVER_ERROR, error.message);
-  //   })
-
-  // }
 
   @Delete('/:id')
   remove(@Param('id', ParseUUIDPipe) id: string): Promise<PfxHttpResponseDto> {

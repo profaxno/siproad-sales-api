@@ -9,7 +9,7 @@ import { ProcessEnum } from '../enums';
 import { JsonBasic } from '../interface/json-basic.interface';
 
 import { CompanyDto, ProductDto, UserDto } from 'src/sales/dto';
-import { CompanyService, UserService, ProductService, ProductTypeService } from 'src/sales';
+import { CompanyService, UserService, ProductService, ProductCategoryService } from 'src/sales';
 
 @Injectable()
 export class DataReceptionWorkerService implements OnModuleInit {
@@ -31,7 +31,7 @@ export class DataReceptionWorkerService implements OnModuleInit {
     private readonly companyService: CompanyService,
     private readonly userService: UserService,
     private readonly productService: ProductService,
-    private readonly productTypeService: ProductTypeService
+    private readonly productCategoryService: ProductCategoryService
   ) {
     // * Retrieve the Redis configuration values from ConfigService
     this.redisHost = this.configService.get('redisHost');
@@ -136,12 +136,12 @@ export class DataReceptionWorkerService implements OnModuleInit {
       }
       case ProcessEnum.PRODUCT_TYPE_UPDATE: {
         const dto: ProductDto = JSON.parse(messageDto.jsonData);
-        return this.productTypeService.update(dto)
+        return this.productCategoryService.update(dto)
         .then( () => 'update product type executed' )
       }
       case ProcessEnum.PRODUCT_TYPE_DELETE: {
         const dto: JsonBasic = JSON.parse(messageDto.jsonData);
-        return this.productTypeService.remove(dto.id)
+        return this.productCategoryService.remove(dto.id)
         .then( () => 'delete product type executed' )
       }
       default: {

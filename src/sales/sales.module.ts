@@ -14,18 +14,18 @@ import { OrderService } from './order.service';
 import { ProductController } from './product.controller';
 import { ProductService } from './product.service';
 
-import { ProductTypeController } from './product-type.controller';
-import { ProductTypeService } from './product-type.service';
+import { ProductCategoryController } from './product-category.controller';
+import { ProductCategoryService } from './product-category.service';
 
-import { Company, User, Order, OrderProduct, Product, ProductType } from './entities';
+import { Company, User, Order, OrderProduct, Product, ProductCategory } from './entities';
 
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([Company, User, Order, OrderProduct, Product, ProductType], 'salesConn'),
+    TypeOrmModule.forFeature([Company, User, Order, OrderProduct, Product, ProductCategory], 'salesConn'),
   ],
-  controllers: [CompanyController, UserController, OrderController, ProductController, ProductTypeController],
-  providers: [CompanyService, UserService, OrderService, ProductService, ProductTypeService],
-  exports: [CompanyService, UserService, ProductService, ProductTypeService]
+  controllers: [CompanyController, UserController, OrderController, ProductController, ProductCategoryController],
+  providers: [CompanyService, UserService, OrderService, ProductService, ProductCategoryService],
+  exports: [CompanyService, UserService, ProductService, ProductCategoryService]
 })
 export class SalesModule {}

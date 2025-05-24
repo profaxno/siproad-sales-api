@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Product, ProductType, User } from "./";
+import { Product, ProductCategory, User } from "./";
 
 @Entity("sal_company")
 export class Company {
@@ -26,10 +26,10 @@ export class Company {
   product: Product;
 
   @OneToMany(
-    () => ProductType,
-    (productType) => productType.company
+    () => ProductCategory,
+    (productCategory) => productCategory.company
   )
-  productType: ProductType;
+  productCategory: ProductCategory;
 
   @OneToMany(
     () => User,

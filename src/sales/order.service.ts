@@ -82,7 +82,7 @@ export class OrderService {
     // * find order
     const inputDto: SearchInputDto = new SearchInputDto(dto.id);
       
-    return this.findByParams({}, inputDto)
+    return this.findByValue({}, inputDto)
     .then( (entityList: Order[]) => {
 
       // * validate
@@ -155,7 +155,7 @@ export class OrderService {
   // find(companyId: string, paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<OrderDto[]> {
   //   const start = performance.now();
 
-  //   return this.findByParams(paginationDto, inputDto, companyId)
+  //   return this.findByValue(paginationDto, inputDto, companyId)
   //   .then( (entityList: Order[]) => entityList.map( (entity) => this.generateOrderWithProductList(entity, entity.orderProduct) ) )
   //   .then( (dtoList: OrderDto[]) => {
       
@@ -182,7 +182,7 @@ export class OrderService {
     const inputDto: SearchInputDto = new SearchInputDto(id);
         
     // * find product
-    return this.findByParams({}, inputDto, companyId)
+    return this.findByValue({}, inputDto, companyId)
     .then( (entityList: Order[]) => entityList.map( (entity) => this.generateOrderWithProductList(entity, entity.orderProduct) ) )
     .then( (dtoList: OrderDto[]) => {
       
@@ -240,7 +240,7 @@ export class OrderService {
     // * find order
     const inputDto: SearchInputDto = new SearchInputDto(id);
     
-    return this.findByParams({}, inputDto)
+    return this.findByValue({}, inputDto)
     .then( (entityList: Order[]) => {
   
       // * validate
@@ -284,7 +284,7 @@ export class OrderService {
     // * find company
     const inputDto: SearchInputDto = new SearchInputDto(dto.companyId);
     
-    return this.companyService.findByParams({}, inputDto)
+    return this.companyService.findByValue({}, inputDto)
     .then( (companyList: Company[]) => {
 
       if(companyList.length == 0){
@@ -296,7 +296,7 @@ export class OrderService {
       // * find user
       const inputDto: SearchInputDto = new SearchInputDto(dto.userId);
 
-      return this.userService.findByParams({}, inputDto)
+      return this.userService.findByValue({}, inputDto)
       .then( (userList: User[]) => {
     
         if(userList.length == 0){
@@ -331,7 +331,7 @@ export class OrderService {
     
   }
 
-  private findByParams(paginationDto: SearchPaginationDto, inputDto: SearchInputDto, companyId?: string): Promise<Order[]> {
+  private findByValue(paginationDto: SearchPaginationDto, inputDto: SearchInputDto, companyId?: string): Promise<Order[]> {
     const {page=1, limit=this.dbDefaultLimit} = paginationDto;
 
     // * search by id or partial value
@@ -471,7 +471,7 @@ export class OrderService {
 
     const inputDto: SearchInputDto = new SearchInputDto(undefined, undefined, uniqueProductIdList);
 
-    return this.productService.findByParams({}, inputDto)
+    return this.productService.findByValue({}, inputDto)
     .then( (productList: Product[]) => {
 
       // * validate

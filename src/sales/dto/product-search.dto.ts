@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString } from "class-validator";
+import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
 
 export class ProductSearchInputDto {
   
@@ -8,12 +8,17 @@ export class ProductSearchInputDto {
   nameCodeList?: string[];
   
   @IsOptional()
+  @IsBoolean()
+  enable4Sale?: boolean;
+
+  @IsOptional()
   @IsString()
-  productTypeId?: string;
+  productCategoryId?: string;
   
-  constructor(nameCodeList?: string[], productTypeId?: string) {
+  constructor(nameCodeList?: string[], enable4Sale?: boolean, productTypeId?: string) {
     this.nameCodeList = nameCodeList;
-    this.productTypeId = productTypeId;
+    this.enable4Sale = enable4Sale;
+    this.productCategoryId = productTypeId;
   }
 
 }

@@ -3,22 +3,22 @@ import { ProcessSummaryDto, SearchInputDto, SearchPaginationDto } from 'profaxno
 
 import { Controller, Get, Post, Body, Patch, Param, Delete, Logger, HttpCode, HttpStatus, Query, ParseUUIDPipe, NotFoundException } from '@nestjs/common';
 
-import { ProductTypeDto } from './dto';
-import { ProductTypeService } from './product-type.service';
+import { ProductCategoryDto } from './dto';
+import { ProductCategoryService } from './product-category.service';
 import { AlreadyExistException, IsBeingUsedException } from '../common/exceptions/common.exception';
 
 @Controller('product-types')
-export class ProductTypeController {
+export class ProductCategoryController {
 
-  private readonly logger = new Logger(ProductTypeController.name);
+  private readonly logger = new Logger(ProductCategoryController.name);
 
   constructor(
-    private readonly productTypeService: ProductTypeService
+    private readonly productTypeService: ProductCategoryService
   ) {}
 
   @Post('/updateBatch')
   @HttpCode(HttpStatus.OK)
-  updateBatch(@Body() dtoList: ProductTypeDto[]): Promise<PfxHttpResponseDto> {
+  updateBatch(@Body() dtoList: ProductCategoryDto[]): Promise<PfxHttpResponseDto> {
     this.logger.log(`>>> updateBatch: listSize=${dtoList.length}`);
     const start = performance.now();
 
@@ -38,12 +38,12 @@ export class ProductTypeController {
 
   @Patch('/update')
   @HttpCode(HttpStatus.OK)
-  update(@Body() dto: ProductTypeDto): Promise<PfxHttpResponseDto> {
+  update(@Body() dto: ProductCategoryDto): Promise<PfxHttpResponseDto> {
     this.logger.log(`>>> update: dto=${JSON.stringify(dto)}`);
     const start = performance.now();
 
     return this.productTypeService.update(dto)
-    .then( (dto: ProductTypeDto) => {
+    .then( (dto: ProductCategoryDto) => {
       const response = new PfxHttpResponseDto(HttpStatus.OK, 'executed', 1, [dto]);
       const end = performance.now();
       this.logger.log(`<<< update: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
@@ -72,7 +72,7 @@ export class ProductTypeController {
     const start = performance.now();
     
     return this.productTypeService.find(companyId, paginationDto, inputDto)
-    .then( (dtoList: ProductTypeDto[]) => {
+    .then( (dtoList: ProductCategoryDto[]) => {
       const response = new PfxHttpResponseDto(HttpStatus.OK, "executed", dtoList.length, dtoList);
       const end = performance.now();
       this.logger.log(`<<< find: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
@@ -93,7 +93,7 @@ export class ProductTypeController {
     const start = performance.now();
 
     return this.productTypeService.findOneById(id)
-    .then( (dtoList: ProductTypeDto[]) => {
+    .then( (dtoList: ProductCategoryDto[]) => {
       const response = new PfxHttpResponseDto(HttpStatus.OK, "executed", dtoList.length, dtoList);
       const end = performance.now();
       this.logger.log(`<<< findOneById: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);
@@ -119,7 +119,7 @@ export class ProductTypeController {
     const start = performance.now();
 
     return this.productTypeService.findOneById(value, companyId)
-    .then( (dtoList: ProductTypeDto[]) => {
+    .then( (dtoList: ProductCategoryDto[]) => {
       const response = new PfxHttpResponseDto(HttpStatus.OK, "executed", dtoList.length, dtoList);
       const end = performance.now();
       this.logger.log(`<<< findByValue: executed, runtime=${(end - start) / 1000} seconds, response=${JSON.stringify(response)}`);

@@ -1,60 +1,63 @@
-import { IsBoolean, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength, Min } from "class-validator";
+import { IsArray, IsBoolean, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength, ValidateNested } from "class-validator";
+import { ProductTypeEnum, UnitMeasuresEnum } from "../enums";
 
 export class ProductDto {
   
-  @IsOptional()
   @IsUUID()
+  @IsOptional()
   id?: string;
-
-  @IsOptional()
-  @IsUUID()
-  productTypeId?: string;
 
   @IsUUID()
   companyId: string;
+
+  @IsOptional()
+  @IsUUID()
+  productCategoryId?: string;
 
   @IsString()
   @MaxLength(100)
   name: string;
 
-  @IsString()
-
   @IsOptional()
+  @IsString()
   @MaxLength(50)
-  code: string;
+  code?: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(100)
   description?: string;
 
+  @IsOptional()
+  @IsIn([UnitMeasuresEnum.UN, UnitMeasuresEnum.KG])
+  @MaxLength(5)
+  unit?: string;
+
   @IsNumber()
-  @Min(0)
   cost: number;
-  
-  @IsNumber()
-  @Min(0)
-  price: number;
 
   @IsOptional()
-  @IsString()
-  @MaxLength(255)
-  imagenUrl?: string;
+  @IsNumber()
+  price?: number;
 
-  // @IsOptional()
-  // @IsBoolean()
-  // active: boolean;
+  @IsIn([ProductTypeEnum.E, ProductTypeEnum.P, ProductTypeEnum.PC, ProductTypeEnum.PCC])
+  type: number;
 
-  constructor(companyId: string, name: string, cost: number, price: number, id?: string, code?: string, productTypeId?: string, description?: string, imagenUrl?: string/*, active?: boolean*/) {
+  @IsBoolean()
+  enable4Sale: boolean;
+
+  constructor(companyId: string, name: string, cost: number, type: number, enable4Sale: boolean, id?: string, productCategoryId?: string, code?: string, description?: string, unit?: string, price?: number) {
     this.companyId = companyId;
     this.name = name;
-    this.code = code;
     this.cost = cost;
-    this.price = price;
+    this.type = type;
+    this.enable4Sale = enable4Sale;
     this.id = id;
-    this.productTypeId = productTypeId;
+    this.productCategoryId = productCategoryId;
+    this.code = code;
     this.description = description;
-    this.imagenUrl = imagenUrl;
-    // this.active = active;
+    this.unit = unit;
+    this.price = price;
   }
+
 }

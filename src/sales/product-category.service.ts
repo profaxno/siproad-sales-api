@@ -6,25 +6,25 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { ProductTypeDto } from './dto/product-type.dto';
-import { ProductType, Company } from './entities';
+import { ProductCategoryDto } from './dto/product-category.dto';
+import { ProductCategory, Company } from './entities';
 
 import { CompanyService } from './company.service';
 
 import { AlreadyExistException, IsBeingUsedException } from '../common/exceptions/common.exception';
 
 @Injectable()
-export class ProductTypeService {
+export class ProductCategoryService {
 
-  private readonly logger = new Logger(ProductTypeService.name);
+  private readonly logger = new Logger(ProductCategoryService.name);
 
   private dbDefaultLimit = 1000;
 
   constructor(
     private readonly ConfigService: ConfigService,
 
-    @InjectRepository(ProductType, 'salesConn')
-    private readonly productTypeRepository: Repository<ProductType>,
+    @InjectRepository(ProductCategory, 'salesConn')
+    private readonly productCategoryRepository: Repository<ProductCategory>,
 
     private readonly companyService: CompanyService
     
@@ -32,7 +32,7 @@ export class ProductTypeService {
     this.dbDefaultLimit = this.ConfigService.get("dbDefaultLimit");
   }
   
-  async updateBatch(dtoList: ProductTypeDto[]): Promise<ProcessSummaryDto>{
+  async updateBatch(dtoList: ProductCategoryDto[]): Promise<ProcessSummaryDto>{
     this.logger.warn(`updateBatch: starting process... listSize=${dtoList.length}`);
     const start = performance.now();
     
@@ -57,22 +57,22 @@ export class ProductTypeService {
     return processSummaryDto;
   }
 
-  update(dto: ProductTypeDto): Promise<ProductTypeDto> {
+  update(dto: ProductCategoryDto): Promise<ProductCategoryDto> {
     if(!dto.id)
       return this.create(dto); // * create
     
     this.logger.warn(`update: starting process... dto=${JSON.stringify(dto)}`);
     const start = performance.now();
 
-    // * find productType
+    // * find productCategory
     const inputDto: SearchInputDto = new SearchInputDto(dto.id);
       
-    return this.findByParams({}, inputDto)
-    .then( (entityList: ProductType[]) => {
+    return this.findByValue({}, inputDto)
+    .then( (entityList: ProductCategory[]) => {
 
       // * validate
       if(entityList.length == 0){
-        this.logger.warn(`update: productType not found, id=${dto.id}`);
+        this.logger.warn(`update: productCategory not found, id=${dto.id}`);
         return this.create(dto); // * create, if the dto has an id and the object is not found, the request may possibly come from data replication
       }
 
@@ -80,9 +80,9 @@ export class ProductTypeService {
       const entity = entityList[0];
               
       return this.prepareEntity(entity, dto) // * prepare
-      .then( (entity: ProductType) => this.save(entity) ) // * update
-      .then( (entity: ProductType) => {
-        const dto = new ProductTypeDto(entity.company.id, entity.name, entity.id); // * map to dto
+      .then( (entity: ProductCategory) => this.save(entity) ) // * update
+      .then( (entity: ProductCategory) => {
+        const dto = new ProductCategoryDto(entity.company.id, entity.name, entity.id); // * map to dto
 
         const end = performance.now();
         this.logger.log(`update: executed, runtime=${(end - start) / 1000} seconds`);
@@ -100,30 +100,30 @@ export class ProductTypeService {
 
   }
 
-  create(dto: ProductTypeDto): Promise<ProductTypeDto> {
+  create(dto: ProductCategoryDto): Promise<ProductCategoryDto> {
     this.logger.warn(`create: starting process... dto=${JSON.stringify(dto)}`);
     const start = performance.now();
 
-    // * find productType
+    // * find productCategory
     const inputDto: SearchInputDto = new SearchInputDto(undefined, [dto.name]);
       
-    return this.findByParams({}, inputDto, dto.companyId)
-    .then( (entityList: ProductType[]) => {
+    return this.findByValue({}, inputDto, dto.companyId)
+    .then( (entityList: ProductCategory[]) => {
 
       // * validate
       if(entityList.length > 0){
-        const msg = `productType already exists, name=${dto.name}`;
+        const msg = `productCategory already exists, name=${dto.name}`;
         this.logger.warn(`create: not executed (${msg})`);
         throw new AlreadyExistException(msg);
       }
 
       // * create
-      const entity = new ProductType();
+      const entity = new ProductCategory();
       
       return this.prepareEntity(entity, dto) // * prepare
-      .then( (entity: ProductType) => this.save(entity) ) // * update
-      .then( (entity: ProductType) => {
-        const dto = new ProductTypeDto(entity.company.id, entity.name, entity.id); // * map to dto 
+      .then( (entity: ProductCategory) => this.save(entity) ) // * update
+      .then( (entity: ProductCategory) => {
+        const dto = new ProductCategoryDto(entity.company.id, entity.name, entity.id); // * map to dto 
 
         const end = performance.now();
         this.logger.log(`create: OK, runtime=${(end - start) / 1000} seconds`);
@@ -141,15 +141,15 @@ export class ProductTypeService {
 
   }
 
-  find(companyId: string, paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<ProductTypeDto[]> {
+  find(companyId: string, paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<ProductCategoryDto[]> {
     const start = performance.now();
 
-    return this.findByParams(paginationDto, inputDto, companyId)
-    .then( (entityList: ProductType[]) => entityList.map( (entity: ProductType) => new ProductTypeDto(entity.company.id, entity.name, entity.id) ) )// * map entities to DTOs
-    .then( (dtoList: ProductTypeDto[]) => {
+    return this.findByValue(paginationDto, inputDto, companyId)
+    .then( (entityList: ProductCategory[]) => entityList.map( (entity: ProductCategory) => new ProductCategoryDto(entity.company.id, entity.name, entity.id) ) )// * map entities to DTOs
+    .then( (dtoList: ProductCategoryDto[]) => {
       
       if(dtoList.length == 0){
-        const msg = `productTypes not found`;
+        const msg = `productCategorys not found`;
         this.logger.warn(`find: ${msg}`);
         throw new NotFoundException(msg);
       }
@@ -168,17 +168,17 @@ export class ProductTypeService {
 
   }
 
-  findOneById(id: string, companyId?: string): Promise<ProductTypeDto[]> {
+  findOneById(id: string, companyId?: string): Promise<ProductCategoryDto[]> {
     const start = performance.now();
 
     const inputDto: SearchInputDto = new SearchInputDto(id);
     
-    return this.findByParams({}, inputDto, companyId)
-    .then( (entityList: ProductType[]) => entityList.map( (entity: ProductType) => new ProductTypeDto(entity.company.id, entity.name, entity.id) ) )// * map entities to DTOs
-    .then( (dtoList: ProductTypeDto[]) => {
+    return this.findByValue({}, inputDto, companyId)
+    .then( (entityList: ProductCategory[]) => entityList.map( (entity: ProductCategory) => new ProductCategoryDto(entity.company.id, entity.name, entity.id) ) )// * map entities to DTOs
+    .then( (dtoList: ProductCategoryDto[]) => {
       
       if(dtoList.length == 0){
-        const msg = `productType not found, id=${id}`;
+        const msg = `productCategory not found, id=${id}`;
         this.logger.warn(`findOneById: ${msg}`);
         throw new NotFoundException(msg);
       }
@@ -201,20 +201,20 @@ export class ProductTypeService {
     this.logger.log(`remove: starting process... id=${id}`);
     const start = performance.now();
 
-    // * find productType
+    // * find productCategory
     const inputDto: SearchInputDto = new SearchInputDto(id);
     
-    return this.findByParams({}, inputDto)
-    .then( (entityList: ProductType[]) => {
+    return this.findByValue({}, inputDto)
+    .then( (entityList: ProductCategory[]) => {
       
       if(entityList.length == 0){
-        const msg = `productType not found, id=${id}`;
+        const msg = `productCategory not found, id=${id}`;
         this.logger.warn(`remove: not executed (${msg})`);
         throw new NotFoundException(msg);
       }
 
       // * delete
-      return this.productTypeRepository.delete(id)
+      return this.productCategoryRepository.delete(id)
       .then( () => {
         const end = performance.now();
         this.logger.log(`remove: OK, runtime=${(end - start) / 1000} seconds`);
@@ -227,7 +227,7 @@ export class ProductTypeService {
         throw error;
 
       if(error.errno == 1217) {
-        const msg = 'productType is being used';
+        const msg = 'productCategory is being used';
         this.logger.warn(`removeProduct: not executed (${msg})`, error);
         throw new IsBeingUsedException(msg);
       }
@@ -238,7 +238,7 @@ export class ProductTypeService {
 
   }
 
-  findByParams(paginationDto: SearchPaginationDto, inputDto: SearchInputDto, companyId?: string): Promise<ProductType[]> {
+  findByValue(paginationDto: SearchPaginationDto, inputDto: SearchInputDto, companyId?: string): Promise<ProductCategory[]> {
     const {page=1, limit=this.dbDefaultLimit} = paginationDto;
 
     // * search by id or partial value
@@ -248,7 +248,7 @@ export class ProductTypeService {
       const whereByValue  = { company: { id: companyId}, name: value, active: true };
       const where = isUUID(value) ? whereById : whereByValue;
 
-      return this.productTypeRepository.find({
+      return this.productCategoryRepository.find({
         take: limit,
         skip: (page - 1) * limit,
         where: where
@@ -257,7 +257,7 @@ export class ProductTypeService {
 
     // * search by value list
     if(inputDto.searchList?.length > 0) {
-      return this.productTypeRepository.find({
+      return this.productCategoryRepository.find({
         take: limit,
         skip: (page - 1) * limit,
         where: {
@@ -272,7 +272,7 @@ export class ProductTypeService {
     }
 
     // * search all
-    return this.productTypeRepository.find({
+    return this.productCategoryRepository.find({
       take: limit,
       skip: (page - 1) * limit,
       where: { 
@@ -285,12 +285,12 @@ export class ProductTypeService {
     
   }
 
-  private prepareEntity(entity: ProductType, dto: ProductTypeDto): Promise<ProductType> {
+  private prepareEntity(entity: ProductCategory, dto: ProductCategoryDto): Promise<ProductCategory> {
     
     // * find company
     const inputDto: SearchInputDto = new SearchInputDto(dto.companyId);
     
-    return this.companyService.findByParams({}, inputDto)
+    return this.companyService.findByValue({}, inputDto)
     .then( (companyList: Company[]) => {
 
       if(companyList.length == 0){
@@ -309,13 +309,13 @@ export class ProductTypeService {
     
   }
 
-  private save(entity: ProductType): Promise<ProductType> {
+  private save(entity: ProductCategory): Promise<ProductCategory> {
     const start = performance.now();
 
-    const newEntity: ProductType = this.productTypeRepository.create(entity);
+    const newEntity: ProductCategory = this.productCategoryRepository.create(entity);
 
-    return this.productTypeRepository.save(newEntity)
-    .then( (entity: ProductType) => {
+    return this.productCategoryRepository.save(newEntity)
+    .then( (entity: ProductCategory) => {
       const end = performance.now();
       this.logger.log(`save: OK, runtime=${(end - start) / 1000} seconds, entity=${JSON.stringify(entity)}`);
       return entity;

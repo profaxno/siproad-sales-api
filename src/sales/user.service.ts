@@ -68,7 +68,7 @@ export class UserService {
     // * find user
     const inputDto: SearchInputDto = new SearchInputDto(dto.id);
       
-    return this.findByParams({}, inputDto)
+    return this.findByValue({}, inputDto)
     .then( (entityList: User[]) => {
 
       // * validate
@@ -117,7 +117,7 @@ export class UserService {
     // * find user
     const inputDto: SearchInputDto = new SearchInputDto(undefined, [dto.email]);
       
-    return this.findByParams({}, inputDto, dto.companyId)
+    return this.findByValue({}, inputDto, dto.companyId)
     .then( (entityList: User[]) => {
 
       // * validate
@@ -163,7 +163,7 @@ export class UserService {
   find(companyId: string, paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<UserDto[]> {
     const start = performance.now();
 
-    return this.findByParams(paginationDto, inputDto, companyId)
+    return this.findByValue(paginationDto, inputDto, companyId)
     .then( (entityList: User[]) => entityList.map( (entity: User) => new UserDto(entity.company.id, entity.name, entity.email, entity.id, entity.status) ) )// * map entities to DTOs
     .then( (dtoList: UserDto[]) => {
       
@@ -192,7 +192,7 @@ export class UserService {
 
     const inputDto: SearchInputDto = new SearchInputDto(id);
     
-    return this.findByParams({}, inputDto, companyId)
+    return this.findByValue({}, inputDto, companyId)
     .then( (entityList: User[]) => entityList.map( (entity: User) => new UserDto(entity.company.id, entity.name, entity.email, entity.id, entity.status) ) )// * map entities to DTOs
     .then( (dtoList: UserDto[]) => {
       
@@ -223,7 +223,7 @@ export class UserService {
     // * find user
     const inputDto: SearchInputDto = new SearchInputDto(id);
     
-    return this.findByParams({}, inputDto)
+    return this.findByValue({}, inputDto)
     .then( (entityList: User[]) => {
       
       if(entityList.length == 0){
@@ -302,7 +302,7 @@ export class UserService {
     // * find company
     const inputDto: SearchInputDto = new SearchInputDto(dto.companyId);
     
-    return this.companyService.findByParams({}, inputDto)
+    return this.companyService.findByValue({}, inputDto)
     .then( (companyList: Company[]) => {
 
       if(companyList.length == 0){
@@ -397,7 +397,7 @@ export class UserService {
   //   })
   // }
 
-  findByParams(paginationDto: SearchPaginationDto, inputDto: SearchInputDto, companyId?: string): Promise<User[]> {
+  findByValue(paginationDto: SearchPaginationDto, inputDto: SearchInputDto, companyId?: string): Promise<User[]> {
     const {page=1, limit=this.dbDefaultLimit} = paginationDto;
 
     // * search by id or partial value

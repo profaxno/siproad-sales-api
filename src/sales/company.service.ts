@@ -37,7 +37,7 @@ export class CompanyService {
 
     const inputDto: SearchInputDto = new SearchInputDto(dto.id);
     
-    return this.findByParams({}, inputDto)
+    return this.findByValue({}, inputDto)
     .then( (entityList: Company[]) => {
 
       // * validate
@@ -77,7 +77,7 @@ export class CompanyService {
     // * find company
     const inputDto: SearchInputDto = new SearchInputDto(undefined, [dto.name]);
     
-    return this.findByParams({}, inputDto)
+    return this.findByValue({}, inputDto)
     .then( (entityList: Company[]) => {
 
       // * validate
@@ -115,7 +115,7 @@ export class CompanyService {
   find(paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<CompanyDto[]> {
     const start = performance.now();
 
-    return this.findByParams(paginationDto, inputDto)
+    return this.findByValue(paginationDto, inputDto)
     .then( (entityList: Company[]) => entityList.map( (entity: Company) => new CompanyDto(entity.name, entity.id) ) ) // * map entities to DTOs
     .then( (dtoList: CompanyDto[]) => {
 
@@ -144,7 +144,7 @@ export class CompanyService {
 
     const inputDto: SearchInputDto = new SearchInputDto(id);
     
-    return this.findByParams({}, inputDto)
+    return this.findByValue({}, inputDto)
     .then( (entityList: Company[]) => entityList.map( (entity: Company) => new CompanyDto(entity.name, entity.id) ) ) // * map entities to DTOs
     .then( (dtoList: CompanyDto[]) => {
 
@@ -174,7 +174,7 @@ export class CompanyService {
 
     const inputDto: SearchInputDto = new SearchInputDto(id);
     
-    return this.findByParams({}, inputDto)
+    return this.findByValue({}, inputDto)
     .then( (entityList: Company[]) => {
       
       if(entityList.length == 0){
@@ -208,7 +208,7 @@ export class CompanyService {
 
   }
 
-  findByParams(paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<Company[]> {
+  findByValue(paginationDto: SearchPaginationDto, inputDto: SearchInputDto): Promise<Company[]> {
     const {page=1, limit=this.dbDefaultLimit} = paginationDto;
 
     // * search by id or partial value

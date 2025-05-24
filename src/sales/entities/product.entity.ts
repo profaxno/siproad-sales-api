@@ -1,6 +1,5 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Company, ProductType, OrderProduct } from "./";
-import {  } from "./order-product.entity";
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Company, ProductCategory, OrderProduct } from "./";
 
 @Entity("sal_product")
 export class Product {
@@ -17,14 +16,20 @@ export class Product {
   @Column('varchar', { length: 100, nullable: true })
   description: string;
 
+  @Column('varchar', { length: 5 })
+  unit: string;
+
   @Column('double')
   cost: number;
 
   @Column('double')
   price: number;
 
-  @Column('varchar', { length: 255, nullable: true })
-  imagenUrl: string;
+  @Column('tinyint', { default: 1, unsigned: true })
+  type: number;
+
+  @Column('boolean', { default: false })
+  enable4Sale: boolean
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
@@ -43,16 +48,15 @@ export class Product {
   company: Company;
 
   @ManyToOne(
-    () => ProductType,
-    (productType) => productType.product,
+    () => ProductCategory,
+    (productCategory) => productCategory.product,
     { eager: true }
   )
-  productType: ProductType;
+  productCategory: ProductCategory;
 
   @OneToMany(
     () => OrderProduct,
     (orderProduct) => orderProduct.product
   )
   orderProduct: OrderProduct[];
-
 }
