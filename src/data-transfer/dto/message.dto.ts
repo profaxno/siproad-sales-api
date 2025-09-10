@@ -3,7 +3,7 @@ import { ArrayNotEmpty, IsArray, IsIn, IsInt, IsNotEmpty, IsObject, IsOptional, 
 import { ProcessEnum, SourceEnum } from "../enums";
 
 export class MessageDto {
-    @IsIn([SourceEnum.API_ADMIN, SourceEnum.API_PRODUCTS])
+    @IsIn([SourceEnum.API_ADMIN, SourceEnum.API_SALES])
     source: SourceEnum;
 
     @IsIn([ProcessEnum.PRODUCT_UPDATE, ProcessEnum.PRODUCT_DELETE])

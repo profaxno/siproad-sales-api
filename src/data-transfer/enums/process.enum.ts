@@ -5,6 +5,8 @@ export enum ProcessEnum {
     USER_DELETE     = 'userDelete',
     PRODUCT_UPDATE  = 'productUpdate',
     PRODUCT_DELETE  = 'productDelete',
-    PRODUCT_TYPE_UPDATE = 'productTypeUpdate',
-    PRODUCT_TYPE_DELETE = 'productTypeDelete'
+    PRODUCT_CATEGORY_UPDATE = 'productTypeUpdate',
+    PRODUCT_CATEGORY_DELETE = 'productTypeDelete',
+    MOVEMENT_UPDATE = 'movementUpdate',
+    MOVEMENT_DELETE = 'movementDelete'
 }
