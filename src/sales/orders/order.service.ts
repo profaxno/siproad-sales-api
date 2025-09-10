@@ -27,7 +27,8 @@ import { ProcessEnum, SourceEnum } from 'src/data-transfer/enums';
 import { DataReplicationService } from 'src/data-transfer/data-replication/data-replication.service';
 
 import { AlreadyExistException, IsBeingUsedException } from '../../common/exceptions/common.exception';
-import { SaleSequence } from './entities/sales-sequence.entity';
+import { Sequence } from './entities/sequence.entity';
+import { SequenceTypeEnum } from './enums/secuence-type.enum';
 
 
 @Injectable()
@@ -200,11 +201,11 @@ export class OrderService {
     return this.dataSource.transaction( (manager: EntityManager) => {
 
       // * get repositories
-      const saleSequenceRepository: Repository<SaleSequence> = manager.getRepository(SaleSequence);
+      const saleSequenceRepository: Repository<Sequence> = manager.getRepository(Sequence);
       const orderRepository       : Repository<Order>        = manager.getRepository(Order);
       const orderProductRepository: Repository<OrderProduct> = manager.getRepository(OrderProduct);
 
-      return this.generateCode(dto.companyId, saleSequenceRepository) // * generate code
+      return this.generateCode(dto.companyId, SequenceTypeEnum.ORDER, saleSequenceRepository) // * generate code
       .then( (code: number) => {
 
         // * set code
@@ -399,12 +400,13 @@ export class OrderService {
   //   })
   // }
 
-  private async generateCode(companyId: string, saleSequenceRepository: Repository<SaleSequence>): Promise<number> {
+  private async generateCode(companyId: string, type: SequenceTypeEnum, saleSequenceRepository: Repository<Sequence>): Promise<number> {
 
     let sequenceEntity = await saleSequenceRepository
     .createQueryBuilder('a')
     .setLock('pessimistic_write')
     .where('a.companyId = :companyId', { companyId })
+    .andWhere('a.type = :type', { type })
     .getOne();
 
     // * increase sequence

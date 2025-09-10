@@ -15,12 +15,12 @@ import { Order, OrderProduct } from './orders/entities';
 import { OrderService } from './orders/order.service';
 
 import { DataReplicationModule } from 'src/data-transfer/data-replication/data-replication.module';
-import { SaleSequence } from './orders/entities/sales-sequence.entity';
+import { Sequence } from './orders/entities/sequence.entity';
 
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([Company, User, Order, OrderProduct, SaleSequence], 'salesConn'),
+    TypeOrmModule.forFeature([Company, User, Order, OrderProduct, Sequence], 'salesConn'),
     DataReplicationModule
   ],
   controllers: [CompanyController, UserController, OrderController],
